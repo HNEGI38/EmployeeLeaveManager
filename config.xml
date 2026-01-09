@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.gyansangrah.employeeleavemanager" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    
+    <name>Employee Leave Manager</name>
+    
+    <description>
+        Leave management app for employees.
+    </description>
+    
+    <author email="help@gyansangrah.com" href="https://gyansangrah.com">
+        Garhwal ki lok sanskriti
+    </author>
+    
+    <icon src="www/icon-512.png" />
+    
+    <platform name="android">
+        <icon src="www/icon-192.png" density="ldpi" />
+        <icon src="www/icon-192.png" density="mdpi" />
+        <icon src="www/icon-192.png" density="hdpi" />
+        <icon src="www/icon-192.png" density="xhdpi" />
+        <icon src="www/icon-192.png" density="xxhdpi" />
+        <icon src="www/icon-192.png" density="xxxhdpi" />
+        
+        <config-file parent="/*" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+        </config-file>
+    </platform>
+    
+    <content src="index.html" />
+    
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <allow-intent href="market:*" />
+
+    <plugin name="cordova-plugin-whitelist" spec="1" />
+    <plugin name="cordova-plugin-local-notification" spec="^0.8.5" />
+    <plugin name="cordova-plugin-file" spec="^6.0.2" />
+    <plugin name="cordova-plugin-file-opener2" spec="^3.0.5" />
+    
+</widget>

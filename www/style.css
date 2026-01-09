@@ -1,0 +1,380 @@
+/* --- 1. GLOBAL SETTINGS --- */
+* {
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6; /* Soft Grey Background */
+    padding-bottom: 85px; /* Space for Bottom Navbar */
+    color: #333;
+}
+
+/* --- 2. HEADER SECTION --- */
+.dual-gradient-bg {
+    background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+    color: white;
+    padding: 15px 20px 20px 20px;
+    border-radius: 0 0 25px 25px;
+    box-shadow: 0 4px 15px rgba(78, 84, 200, 0.3);
+}
+
+.glass-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 6px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.profile-icon-container {
+    color: rgba(255,255,255,0.9);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.profile-icon-container:active { transform: scale(0.9); }
+
+/* Holiday Dropdown in Header */
+details.holiday-dropdown summary {
+    list-style: none;
+    outline: none;
+    transition: background 0.3s;
+}
+details.holiday-dropdown[open] summary {
+    background: rgba(0,0,0,0.1) !important;
+    border-radius: 8px 8px 0 0;
+}
+.dropdown-content {
+    animation: fadeIn 0.3s ease;
+    border-radius: 0 0 8px 8px;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- 3. CALENDAR STYLES --- */
+.calendar-container {
+    background: white;
+    margin: 15px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    touch-action: pan-y; /* For Swipe */
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+}
+.calendar-header button {
+    background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 0 10px;
+}
+
+/* Calendar Header Dropdowns */
+.cal-dropdowns select {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    font-weight: bold;
+    font-size: 0.95rem;
+    padding: 5px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: none;
+    text-align: center;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.cal-dropdowns select option {
+    background: white;
+    color: #333;
+}
+
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    background: #f8f9fa;
+    padding: 10px 0;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #555;
+    border-bottom: 1px solid #eee;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #fff;
+    grid-auto-rows: minmax(55px, 1fr);
+}
+
+.calendar-grid div {
+    border-right: 1px solid #fafafa;
+    border-bottom: 1px solid #fafafa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 5px;
+    height: 100%;
+}
+
+.date-num { font-size: 0.9rem; color: #444; margin-bottom: 2px; }
+.event-name { 
+    font-size: 0.6rem; 
+    font-weight: 700; 
+    text-align: center; 
+    width: 90%; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    border-radius: 3px;
+    padding: 1px 2px;
+}
+
+/* Indicators */
+.is-holiday .date-num { color: #d32f2f; font-weight: bold; }
+.is-holiday .event-name { color: #c62828; background: #ffebee; }
+
+.has-leave .date-num { color: #00695c; font-weight: bold; }
+.has-leave .event-name { color: #00695c; background: #e0f2f1; }
+
+.today .date-num {
+    background: #4e54c8; color: white;
+    border-radius: 50%; width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(78, 84, 200, 0.4);
+}
+
+/* --- 4. DASHBOARD CARDS & TABLES --- */
+.card-box {
+    background: white;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+}
+
+.info-card {
+    background: white;
+    margin: 0 15px 15px 15px;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.balance-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+    margin-top: 10px;
+}
+.balance-table th {
+    background: #e8eaf6;
+    color: #283593;
+    font-weight: 700;
+    padding: 10px 5px;
+    text-align: center;
+    border-bottom: 2px solid #c5cae9;
+}
+.balance-table th:first-child { border-radius: 8px 0 0 0; }
+.balance-table th:last-child { border-radius: 0 8px 0 0; }
+
+.balance-table td {
+    padding: 10px 5px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+    color: #333;
+    font-weight: 500;
+}
+.balance-table tr:last-child td { border-bottom: none; }
+
+.manage-icon {
+    font-size: 1.4rem;
+    color: #4e54c8;
+    cursor: pointer;
+    transition: transform 0.2s;
+    padding: 5px;
+}
+.manage-icon:active { transform: scale(1.2); }
+
+/* --- 5. MODAL (POPUP) --- */
+.modal {
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.6); 
+    z-index: 2000;
+    backdrop-filter: blur(3px);
+}
+.modal-content {
+    background: white;
+    margin: 5% auto;
+    width: 94%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* --- 6. LEDGER TABS & TABLE --- */
+.ledger-action-panel {
+    background: #fcfcfc;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+.action-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: #e0e0e0;
+    color: #555;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.active-tab {
+    background: #4e54c8;
+    color: white;
+    box-shadow: 0 3px 8px rgba(78, 84, 200, 0.3);
+}
+
+.service-book-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    background: white;
+}
+.service-book-table th {
+    background: #eceff1;
+    color: #37474f;
+    border: 1px solid #cfd8dc;
+    padding: 8px;
+    font-weight: bold;
+}
+.service-book-table td {
+    border: 1px solid #eceff1;
+    padding: 8px;
+    text-align: center;
+}
+
+/* --- 7. FORMS & BUTTONS --- */
+.input-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 4px;
+}
+.form-group { margin-bottom: 15px; }
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #fff;
+    box-sizing: border-box;
+}
+input:focus, select:focus {
+    border-color: #4e54c8;
+    outline: none;
+}
+
+/* Disabled inputs styling (for Retirement Date) */
+input:disabled {
+    background: #f5f5f5;
+    color: #777;
+    cursor: not-allowed;
+}
+
+.btn-save {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background: #4e54c8;
+}
+.btn-save:active { transform: translateY(1px); box-shadow: none; }
+
+.btn-reset {
+    padding: 10px 25px;
+    background: #fff;
+    color: #d32f2f;
+    border: 1px solid #ef9a9a;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* --- 8. BOTTOM NAVBAR --- */
+.navbar {
+    display: flex;
+    justify-content: space-around;
+    background: white;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 8px 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    border-top: 1px solid #f0f0f0;
+    z-index: 1000;
+}
+.nav-btn {
+    background: none;
+    border: none;
+    color: #90a4ae;
+    font-size: 0.7rem;
+    cursor: pointer;
+    flex: 1;
+    transition: color 0.3s;
+}
+.nav-btn i {
+    font-size: 1.4rem;
+    display: block;
+    margin-bottom: 4px;
+}
+.nav-btn.active-nav {
+    color: #4e54c8;
+    font-weight: 700;
+}
+
+/* --- 9. MISC & UTILITIES --- */
+.highlight-box {
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    padding: 10px;
+    border-radius: 8px;
+}
+.holiday-list-style li {
+    padding: 10px 0;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.85rem;
+    display: flex; justify-content: space-between;
+}
+
+/* Service History Rows Styling */
+.service-row {
+    animation: fadeIn 0.3s;
+}
