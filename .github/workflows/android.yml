@@ -13,12 +13,12 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v3
 
-      # --- यह नई सेटिंग है (Java 11 Fix) ---
+      # --- Java 17 (नये Android के लिए जरूरी) ---
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -31,11 +31,12 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      # --- Android Platform 12.0.0 (यह सबसे स्टेबल है) ---
       - name: Add Android Platform
-        run: cordova platform add android
+        run: cordova platform add android@12.0.0
 
       - name: Build Android APK
-        run: cordova build android --debug
+        run: cordova build android --debug -- --packageType=apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
