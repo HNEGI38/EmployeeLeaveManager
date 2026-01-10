@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 // --- 1. CONFIGURATION ---
@@ -41,65 +41,20 @@ const leaveConfig = {
     "Paternity": { name: "पितृत्व", type: "LONG", quota: 0, format: "FIXED_QUOTA", excludeHolidays: false }
 };
 
-// --- 4. AUTH & INIT (Native App Code) ---
-
-// 1. रजिस्टर फंक्शन (नया यूजर)
-window.emailSignup = function() {
-    const e = document.getElementById('user-email').value;
-    const p = document.getElementById('user-pass').value;
-    if(!e || !p) return alert("कृपया Email और Password दोनों भरें।");
-    if(p.length < 6) return alert("पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।");
-
-    createUserWithEmailAndPassword(auth, e, p)
-        .then((userCredential) => {
-            alert("रजिस्ट्रेशन सफल! अब आप लॉग इन हैं।");
-        })
-        .catch((error) => {
-            if(error.code === 'auth/email-already-in-use') alert("यह ईमेल पहले से बना हुआ है। Login करें।");
-            else alert("Error: " + error.message);
-        });
+// --- DATE FORMATTER (DD-MM-YYYY) ---
+function getIndDate(isoDate) {
+    if(!isoDate) return "";
+    let p = isoDate.split('-');
+    return `${p[2]}-${p[1]}-${p[0]}`;
 }
 
-// 2. लॉगिन फंक्शन (पुराना यूजर)
-window.emailLogin = function() {
-    const e = document.getElementById('user-email').value;
-    const p = document.getElementById('user-pass').value;
-    if(!e || !p) return alert("Email और Password दोनों भरें।");
-
-    signInWithEmailAndPassword(auth, e, p)
-        .then((userCredential) => {
-            console.log("Login Successful");
-        })
-        .catch((error) => {
-            alert("Login Failed: ईमेल या पासवर्ड गलत है।");
-        });
-}
-
-// 3. लॉगआउट फंक्शन
-window.logoutApp = function() {
-    signOut(auth).then(() => {
-        alert("लॉग आउट किया गया।");
-        location.reload(); 
-    });
-}
-
-// 4. लॉगिन स्टेटस चेक करना
+// --- 4. AUTH & INIT ---
+window.loginWithGoogle = function() { signInWithPopup(auth, provider).then(() => location.reload()).catch(e => alert(e.message)); }
 onAuthStateChanged(auth, async (user) => {
-    // HTML Elements को ढूंढें
-    const loginForm = document.getElementById("login-form");
-    const userInfo = document.getElementById("user-info");
-    const emailDisplay = document.getElementById("user-email-display");
-
     if (user) {
-        // --- अगर यूजर लॉग इन है ---
         currentUser = user;
-        
-        // फॉर्म छुपाएं, नाम दिखाएं
-        if(loginForm) loginForm.style.display = "none";
-        if(userInfo) userInfo.style.display = "block";
-        if(emailDisplay) emailDisplay.innerText = user.email.split('@')[0];
-
-        // फायरबेस से डेटा लाएं
+        document.getElementById("login-btn").style.display = "none";
+        document.getElementById("user-info").style.display = "block";
         try {
             const docSnap = await getDoc(doc(db, "users", user.uid));
             if (docSnap.exists()) {
@@ -110,21 +65,14 @@ onAuthStateChanged(auth, async (user) => {
                 userProfile = data.profile || {};
                 myNotes = data.notes || [];
             }
-        } catch (e) { console.error("Data Load Error:", e); }
+        } catch (e) { console.error(e); }
     } else {
-        // --- अगर यूजर लॉग आउट है ---
-        if(loginForm) loginForm.style.display = "flex";
-        if(userInfo) userInfo.style.display = "none";
-        
-        // लोकल स्टोरेज से ऑफलाइन डेटा लाएं
         leaveHistory = JSON.parse(localStorage.getItem('uk_history')) || [];
         earnedPratikar = JSON.parse(localStorage.getItem('uk_pratikar')) || [];
         manualCredits = JSON.parse(localStorage.getItem('uk_credits')) || {};
         userProfile = JSON.parse(localStorage.getItem('uk_profile')) || {};
         myNotes = JSON.parse(localStorage.getItem('uk_notes')) || [];
     }
-
-    // पूरी ऐप को रिफ्रेश करें ताकि डेटा दिखे
     refreshAll();
     injectVerificationModal();
     checkDailyNotifications();
