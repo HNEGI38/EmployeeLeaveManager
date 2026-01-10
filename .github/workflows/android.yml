@@ -18,13 +18,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js (Node 18)
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      # 3. Setup Java (Java 17 - Required for new Android builds)
+      # 3. Setup Java
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
@@ -35,25 +35,26 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Dependencies (Master Fix: Remove Lockfile & Force HTTPS)
+      # 5. Install Dependencies (Clean & HTTPS Force)
       - name: Install Dependencies
         run: |
-          # Delete lock file to clear old SSH references
           rm -f package-lock.json
-          
-          # Force Git to use HTTPS instead of SSH
           git config --global url."https://github.com/".insteadOf git@github.com:
           git config --global url."https://github.com/".insteadOf ssh://git@github.com/
-          
-          # Install Cordova and dependencies
           npm install -g cordova
           npm install
+
+      # NEW STEP: Download & Install Google Plugin Manually
+      - name: Install Google Plugin Manually
+        run: |
+          git clone https://github.com/EddyVerbruggen/cordova-plugin-google-plus.git google-login-plugin
+          cordova plugin add ./google-login-plugin --variable PLAY_SERVICES_VERSION=17.0.0 --variable WEB_APPLICATION_CLIENT_ID=61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com
 
       # 6. Add Android Platform
       - name: Add Android Platform
         run: cordova platform add android
 
-      # 7. Build APK (Debug Version)
+      # 7. Build APK
       - name: Build Android APK
         run: cordova build android --debug --packageType=apk
 
