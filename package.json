@@ -1,31 +1,29 @@
 {
-  "name": "com.gyansangrah.employeeleavemanager",
-  "displayName": "Employee Leave Manager",
-  "version": "1.0.0",
-  "description": "A leave management application.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "project_info": {
+    "project_number": "123456789012",
+    "project_id": "dummy-project",
+    "storage_bucket": "dummy-project.appspot.com"
   },
-  "keywords": [
-    "ecosystem:cordova"
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789012:android:abcdef123456",
+        "android_client_info": {
+          "package_name": "com.gyansangrah.employeeleavemanager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDummyKeyForBuildPurposeOnly"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
   ],
-  "author": "Developer",
-  "license": "Apache-2.0",
-  "devDependencies": {
-    "cordova-android": "^13.0.0",
-    "cordova-plugin-androidx-adapter": "^1.1.3",
-    "cordova-plugin-file": "^8.1.0",
-    "cordova-plugin-file-opener2": "^4.0.0"
-  },
-  "cordova": {
-    "plugins": {
-      "cordova-plugin-androidx-adapter": {},
-      "cordova-plugin-file": {},
-      "cordova-plugin-file-opener2": {}
-    },
-    "platforms": [
-      "android"
-    ]
-  }
+  "configuration_version": "1"
 }
