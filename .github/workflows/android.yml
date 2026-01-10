@@ -35,20 +35,20 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Dependencies (Clean & HTTPS Force)
+      # 5. Install Dependencies (Standard)
       - name: Install Dependencies
         run: |
           rm -f package-lock.json
-          git config --global url."https://github.com/".insteadOf git@github.com:
-          git config --global url."https://github.com/".insteadOf ssh://git@github.com/
           npm install -g cordova
           npm install
 
-      # NEW STEP: Download & Install Google Plugin Manually
+      # NEW STEP: Download Google Plugin via ZIP (Success Guaranteed)
       - name: Install Google Plugin Manually
         run: |
-          git clone https://github.com/EddyVerbruggen/cordova-plugin-google-plus.git google-login-plugin
-          cordova plugin add ./google-login-plugin --variable PLAY_SERVICES_VERSION=17.0.0 --variable WEB_APPLICATION_CLIENT_ID=61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com
+          wget https://github.com/EddyVerbruggen/cordova-plugin-google-plus/archive/refs/heads/master.zip -O plugin.zip
+          unzip plugin.zip
+          PLUGIN_DIR=$(ls -d cordova-plugin-google-plus-*)
+          cordova plugin add ./$PLUGIN_DIR --variable PLAY_SERVICES_VERSION=17.0.0 --variable WEB_APPLICATION_CLIENT_ID=61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com
 
       # 6. Add Android Platform
       - name: Add Android Platform
