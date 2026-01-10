@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// CHANGE 1: Added email auth functions here
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 // --- 1. CONFIGURATION ---
@@ -16,7 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
+// const provider = new GoogleAuthProvider(); // Not needed for Email/Pass
 let currentUser = null;
 
 // --- 2. DATA VARIABLES ---
@@ -29,7 +30,6 @@ let selectedDashboardYear = new Date().getFullYear();
 let wrongPinAttempts = 0; 
 
 // --- 3. LEAVE RULES ---
-// Note: ML, CCL, Maternity, Paternity quota set to 0. User must add it once.
 const leaveConfig = {
     "CL": { name: "आकस्मिक (CL)", type: "SHORT", quota: 14, format: "YEARLY", excludeHolidays: true },
     "Pratikar": { name: "प्रतिकर अवकाश", type: "SHORT", quota: 0, format: "MANUAL", excludeHolidays: true },
@@ -41,20 +41,77 @@ const leaveConfig = {
     "Paternity": { name: "पितृत्व", type: "LONG", quota: 0, format: "FIXED_QUOTA", excludeHolidays: false }
 };
 
-// --- DATE FORMATTER (DD-MM-YYYY) ---
+// --- DATE FORMATTER ---
 function getIndDate(isoDate) {
     if(!isoDate) return "";
     let p = isoDate.split('-');
     return `${p[2]}-${p[1]}-${p[0]}`;
 }
 
-// --- 4. AUTH & INIT ---
-window.loginWithGoogle = function() { signInWithPopup(auth, provider).then(() => location.reload()).catch(e => alert(e.message)); }
+// --- 4. AUTH & INIT (New Logic for Email/Pass) ---
+
+// A. Registration Function
+window.emailSignup = function() {
+    const e = document.getElementById('user-email').value;
+    const p = document.getElementById('user-pass').value;
+    if(!e || !p) return alert("कृपया Email और Password दोनों भरें।");
+    if(p.length < 6) return alert("पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।");
+
+    alert("रजिस्टर हो रहा है, कृपया प्रतीक्षा करें..."); // Feedback for user
+
+    createUserWithEmailAndPassword(auth, e, p)
+        .then((userCredential) => {
+            alert("सफलतापूर्वक रजिस्टर हो गया! \nअब आप ऐप इस्तेमाल कर सकते हैं।");
+            // No reload needed, onAuthStateChanged will handle it
+        })
+        .catch((error) => {
+            alert("Registration Failed:\n" + error.message);
+        });
+}
+
+// B. Login Function
+window.emailLogin = function() {
+    const e = document.getElementById('user-email').value;
+    const p = document.getElementById('user-pass').value;
+    if(!e || !p) return alert("Email और Password दोनों भरें।");
+
+    alert("लॉगिन हो रहा है...");
+
+    signInWithEmailAndPassword(auth, e, p)
+        .then((userCredential) => {
+            console.log("Login Successful");
+            // onAuthStateChanged will auto-redirect
+        })
+        .catch((error) => {
+            alert("Login Failed: ईमेल या पासवर्ड गलत है।\n(" + error.code + ")");
+        });
+}
+
+// C. Logout Function
+window.logoutApp = function() {
+    signOut(auth).then(() => {
+        alert("लॉग आउट किया गया।");
+        location.reload(); 
+    });
+}
+
+// D. Auth State Listener (Handles UI Switching)
 onAuthStateChanged(auth, async (user) => {
+    // HTML Elements
+    const loginForm = document.getElementById("login-form");
+    const userInfo = document.getElementById("user-info");
+    const emailDisplay = document.getElementById("user-email-display");
+
     if (user) {
+        // --- LOGGED IN ---
         currentUser = user;
-        document.getElementById("login-btn").style.display = "none";
-        document.getElementById("user-info").style.display = "block";
+        
+        // Show App, Hide Login
+        if(loginForm) loginForm.style.display = "none";
+        if(userInfo) userInfo.style.display = "block";
+        if(emailDisplay) emailDisplay.innerText = user.email.split('@')[0];
+
+        // Load Data from Firebase
         try {
             const docSnap = await getDoc(doc(db, "users", user.uid));
             if (docSnap.exists()) {
@@ -65,25 +122,39 @@ onAuthStateChanged(auth, async (user) => {
                 userProfile = data.profile || {};
                 myNotes = data.notes || [];
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error("Data Load Error:", e);
+            // alert("डेटा लोड करने में समस्या: " + e.message);
+        }
     } else {
+        // --- LOGGED OUT ---
+        if(loginForm) loginForm.style.display = "flex"; // Show Login
+        if(userInfo) userInfo.style.display = "none"; // Hide App
+        
+        // Load Offline Data (LocalStorage)
         leaveHistory = JSON.parse(localStorage.getItem('uk_history')) || [];
         earnedPratikar = JSON.parse(localStorage.getItem('uk_pratikar')) || [];
         manualCredits = JSON.parse(localStorage.getItem('uk_credits')) || {};
         userProfile = JSON.parse(localStorage.getItem('uk_profile')) || {};
         myNotes = JSON.parse(localStorage.getItem('uk_notes')) || [];
     }
+
+    // Refresh UI
     refreshAll();
     injectVerificationModal();
     checkDailyNotifications();
 });
 
+// --- SAVE DATA FUNCTION ---
 async function saveData() {
+    // Save locally
     localStorage.setItem('uk_history', JSON.stringify(leaveHistory));
     localStorage.setItem('uk_pratikar', JSON.stringify(earnedPratikar));
     localStorage.setItem('uk_credits', JSON.stringify(manualCredits));
     localStorage.setItem('uk_profile', JSON.stringify(userProfile));
     localStorage.setItem('uk_notes', JSON.stringify(myNotes));
+    
+    // Save to Cloud (if logged in)
     if (currentUser) {
         await setDoc(doc(db, "users", currentUser.uid), { 
             history: leaveHistory, pratikar: earnedPratikar, credits: manualCredits, profile: userProfile, notes: myNotes 
@@ -91,6 +162,7 @@ async function saveData() {
     }
 }
 
+// --- APP REFRESH LOGIC ---
 function refreshAll() { 
     populateCalendarDropdowns();
     populateYearSelector(); 
@@ -102,11 +174,6 @@ function refreshAll() {
 }
 
 // --- 5. HOLIDAYS ---
-const hindiMonths = ["जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"];
-let currDate = new Date(); 
-let currMonth = currDate.getMonth(); 
-let currYear = currDate.getFullYear(); 
-
 const fullHolidaysBase = {
     "01-14": "मकर संक्राति",
     "01-23": "बसन्त पंचमी",
@@ -148,6 +215,11 @@ const fullHolidaysBase = {
     "11-24": "गुरूनानक जयंती",
     "12-25": "क्रिसमस दिवस"
 };
+
+const hindiMonths = ["जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"];
+let currDate = new Date(); 
+let currMonth = currDate.getMonth(); 
+let currYear = currDate.getFullYear(); 
 
 function getHolidayName(dateObj) {
     let d = String(dateObj.getDate()).padStart(2, '0');
