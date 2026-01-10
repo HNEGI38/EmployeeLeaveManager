@@ -3,234 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content:;">
+    
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content:;
+        style-src * 'unsafe-inline';
+        script-src * 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com;
+        connect-src * https://www.googleapis.com https://securetoken.googleapis.com;
+        img-src * 'self' data: https:;
+    ">
+
     <title>Employee Leave Manager</title>
-    <link rel="stylesheet" href="style.css">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <meta name="theme-color" content="#4e54c8">
+
+    <style>
+        /* --- CORE STYLES --- */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #333; -webkit-tap-highlight-color: transparent; }
+        
+        /* Login Screen */
+        #login-form { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
+        .login-box { background: rgba(255,255,255,0.15); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); width: 100%; max-width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+        .login-input { width: 90%; padding: 12px; margin: 10px 0; border: none; border-radius: 25px; outline: none; font-size: 16px; text-align: center; }
+        .btn-login { width: 100%; padding: 12px; border: none; border-radius: 25px; background: #fff; color: #764ba2; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; transition: 0.3s; }
+        .btn-register { background: transparent; border: 2px solid #fff; color: #fff; }
+
+        /* App Header */
+        header { background: #4e54c8; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+        .header-title { font-size: 1.2rem; font-weight: bold; }
+        
+        /* Navigation Bar */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 99; }
+        .nav-btn { background: none; border: none; color: #888; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; width: 25%; cursor: pointer; }
+        .nav-btn i { font-size: 1.4rem; margin-bottom: 3px; }
+        .active-nav { color: #4e54c8; font-weight: bold; }
+
+        /* Main Content Areas */
+        .app-view { display: none; padding: 15px; padding-bottom: 80px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Cards & Lists */
+        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .input-label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 5px; font-weight: 500; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; font-size: 1rem; }
+        .btn-save { width: 100%; background: #4e54c8; color: white; padding: 12px; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; }
+        .btn-reset { background: #e74c3c; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; }
+
+        /* Calendar Grid */
+        #calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; margin-top: 10px; }
+        #calendar-days { display: contents; }
+        #calendar-days div { height: 60px; border-radius: 5px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.9rem; position: relative; border: 1px solid #eee; }
+        .day-name { font-weight: bold; color: #555; padding: 5px 0; }
+        .is-holiday { background-color: #ffebee !important; border-color: #ffcdd2 !important; color: #c62828; }
+        .has-leave { background-color: #e3f2fd !important; border-color: #90caf9 !important; color: #1565c0; }
+        .today { border: 2px solid #4e54c8 !important; }
+        .event-name { font-size: 0.55rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; margin-top: 2px; }
+
+        /* Dashboard Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th { background: #f8f9fa; text-align: left; padding: 8px; color: #666; font-size: 0.8rem; }
+        td { padding: 8px; border-bottom: 1px solid #eee; }
+        .manage-icon { color: #4e54c8; font-size: 1.2rem; cursor: pointer; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 400px; border-radius: 10px; overflow: hidden; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-header { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .close-btn { font-size: 1.5rem; cursor: pointer; color: #aaa; }
+        
+        /* Tabs in Modal */
+        .modal-tabs { display: flex; background: #eee; padding: 5px; border-radius: 5px; margin: 10px; }
+        .action-tab { flex: 1; padding: 8px; border: none; background: none; cursor: pointer; font-weight: bold; color: #666; }
+        .active-tab { background: white; color: #4e54c8; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        .holiday-list-style { list-style: none; padding: 0; margin: 0; }
+        .holiday-list-style li { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+    </style>
 </head>
 <body>
 
-<header class="dual-gradient-bg">
-    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px;">
-        <div style="flex: 1;">
-            <h2 style="margin:0; font-size:1.5rem; font-weight: 800; letter-spacing: 0.5px;">Employee Leave Manager</h2>
-            <div style="font-size: 0.75rem; opacity: 0.95; margin-top: 2px;">Govt. Staff Service Book & Record</div>
-        </div>
-        <div class="profile-icon-container" onclick="openProfileModal()" style="margin-left: 10px;">
-            <i class="fas fa-user-circle" style="font-size: 1.8rem;"></i>
+    <div id="login-form">
+        <div class="login-box">
+            <h2 style="margin-bottom: 5px;">Leave Manager</h2>
+            <p style="margin-top: 0; font-size: 0.9rem; opacity: 0.8;">Uttarakhand Govt. Employees</p>
+            <input type="email" id="user-email" class="login-input" placeholder="Email Address">
+            <input type="password" id="user-pass" class="login-input" placeholder="Password">
+            <button class="btn-login" onclick="emailLogin()">Login</button>
+            <button class="btn-login btn-register" onclick="emailSignup()">Register New Account</button>
         </div>
     </div>
-    
-    <details class="holiday-dropdown" style="margin-top:10px; background:rgba(255,255,255,0.2); border-radius:8px; border:1px solid rgba(255,255,255,0.3);">
-        <summary style="padding:10px; font-size:0.9rem; cursor:pointer; color:white; font-weight:bold; list-style:none; display: flex; justify-content: space-between; align-items: center;">
-            <span>📅 अवकाश सूची (Holiday List)</span>
-            <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-        </summary>
-        <div class="dropdown-content" style="background:white; color:black; padding:10px; border-radius:0 0 8px 8px; max-height:300px; overflow-y:auto;">
-            <table class="balance-table" style="margin:0;">
-                <thead>
-                    <tr style="background:#eee;"><th>दिनांक</th><th>पर्व / त्यौहार</th></tr>
-                </thead>
-                <tbody id="header-holiday-table-body">
-                    </tbody>
-            </table>
-        </div>
-    </details>
-    
-    <div id="auth-section" style="margin-top: 10px; text-align:right;">
-        <div id="login-form" style="display:flex; flex-direction:column; gap:8px; background:rgba(255,255,255,0.2); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.3);">
-            <input type="email" id="user-email" placeholder="Email Address" style="padding:8px; border-radius:4px; border:none; font-size:0.9rem; width:100%;">
-            <input type="password" id="user-pass" placeholder="Password" style="padding:8px; border-radius:4px; border:none; font-size:0.9rem; width:100%;">
-            <div style="display:flex; gap:5px;">
-                <button onclick="emailLogin()" style="flex:1; background:#4caf50; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold;">Login</button>
-                <button onclick="emailSignup()" style="flex:1; background:#2196f3; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold;">Register</button>
+
+    <div id="user-info" style="display: none;">
+        
+        <header>
+            <div class="header-title">
+                <i class="fas fa-user-circle"></i> <span id="user-email-display">User</span>
             </div>
-            <small style="color:white; font-size:0.7rem; text-align:center; opacity:0.9;">पहली बार हैं? ईमेल भरें और Register दबाएं।</small>
-        </div>
+            <div>
+                <i class="fas fa-id-card" style="margin-right: 15px; cursor: pointer;" onclick="openProfileModal()"></i>
+                <i class="fas fa-sign-out-alt" style="cursor: pointer;" onclick="logoutApp()"></i>
+            </div>
+        </header>
 
-        <div id="user-info" style="display:none; color: white; font-weight:bold; font-size: 0.8rem; background:rgba(0,0,0,0.2); padding:5px 10px; border-radius:20px; text-align: center;">
-            <span id="user-email-display">User</span>
-            <button onclick="logoutApp()" style="margin-left:10px; background:#ff5252; border:none; color:white; border-radius:10px; padding:2px 8px; font-size:0.7rem; cursor:pointer;">Logout</button>
-        </div>
-    </div>
-</header>
-
-<div class="navbar">
-    <button class="nav-btn active-nav" onclick="switchTab('view-calendar')">
-        <i class="fas fa-calendar-alt"></i><br>कैलेंडर
-    </button>
-    <button class="nav-btn" onclick="switchTab('view-manager')">
-        <i class="fas fa-file-invoice"></i><br>Leave A/C
-    </button>
-    <button class="nav-btn" onclick="switchTab('view-dob')">
-        <i class="fas fa-calculator"></i><br>आयु
-    </button>
-    <button class="nav-btn" onclick="switchTab('view-notes')">
-        <i class="fas fa-sticky-note"></i><br>नोट्स
-    </button>
-</div>
-
-<div id="view-calendar" class="app-view">
-    <div class="calendar-container" id="calendar-swipe-area">
-        <div class="calendar-header dual-gradient-bg" style="border-radius: 12px 12px 0 0; padding: 10px;">
-            <button onclick="changeMonth(-1)">&#10094;</button>
-            <div class="cal-dropdowns" style="display:flex; gap:5px; align-items:center;">
+        <div id="view-calendar" class="app-view">
+            <div class="card" style="display: flex; gap: 10px;">
                 <select id="cal-month-select" onchange="jumpToDate()"></select>
                 <select id="cal-year-select" onchange="jumpToDate()"></select>
             </div>
-            <button onclick="changeMonth(1)">&#10095;</button>
-        </div>
-        <div class="weekdays"><div>रवि</div><div>सोम</div><div>मंगल</div><div>बुध</div><div>गुरु</div><div>शुक्र</div><div>शनि</div></div>
-        <div class="calendar-grid" id="calendar-days"></div>
-    </div>
-    <div class="info-card">
-        <h4 class="card-title" style="color:#4e54c8; border-bottom:1px solid #eee; margin-bottom:10px;">
-            <i class="fas fa-info-circle"></i> इस माह के अवकाश
-        </h4>
-        <ul id="month-holiday-list" class="holiday-list-style" style="padding:0; list-style:none;"></ul>
-    </div>
-</div>
 
-<div id="view-manager" class="app-view" style="display:none;">
-    <div style="text-align:center; padding:15px; background:#e8eaf6; margin: 15px 10px 5px 10px; border-radius:8px; border: 1px solid #c5cae9; display:flex; flex-direction:column; align-items:center;">
-        <label style="font-size:0.9rem; color:#3949ab; font-weight:bold; margin-bottom:5px;">चयनित वर्ष (Selected Year)</label>
-        <select id="dashboard-year-select" onchange="updateDashboardYear()" style="font-size:1.2rem; font-weight:bold; color:#1a237e; padding:8px 20px; border-radius:20px; border:2px solid #3949ab; background:white; outline:none; text-align:center; width:auto;">
-            </select>
-    </div>
-
-    <div class="card-box">
-        <h4 style="color:#4e54c8; margin:0 0 10px 0; border-bottom:2px solid #eee; padding-bottom:5px;">
-            अल्पकालीन अवकाश (Short Term)
-        </h4>
-        <table class="balance-table">
-            <thead>
-                <tr>
-                    <th style="text-align:left;">अवकाश</th>
-                    <th>कुल देय</th>
-                    <th>उपभोग</th>
-                    <th>शेष</th>
-                    <th>Manage</th>
-                </tr>
-            </thead>
-            <tbody id="balance-body-short"></tbody>
-        </table>
-    </div>
-
-    <div class="card-box" style="margin-top:15px;">
-        <h4 style="color:#c0392b; margin:0 0 10px 0; border-bottom:2px solid #eee; padding-bottom:5px;">
-            दीर्घकालीन / सेवा अवकाश (Long Term)
-        </h4>
-        <table class="balance-table">
-            <thead>
-                <tr>
-                    <th style="text-align:left;">अवकाश</th>
-                    <th>कुल देय</th>
-                    <th>उपभोग</th>
-                    <th>शेष</th>
-                    <th>Manage</th>
-                </tr>
-            </thead>
-            <tbody id="balance-body-long"></tbody>
-        </table>
-    </div>
-    
-    <div class="card-box" style="margin-top:15px;">
-        <h4 style="color:#333; margin:0 0 10px 0; border-bottom:2px solid #eee; padding-bottom:5px;">
-            <i class="fas fa-history"></i> अवकाश इतिहास (इस वर्ष)
-        </h4>
-        <ul id="dashboard-history-list" class="holiday-list-style" style="padding:0; list-style:none; max-height:200px; overflow-y:auto;">
-            </ul>
-    </div>
-</div>
-
-<div id="view-dob" class="app-view" style="display:none; padding:15px;">
-    <div class="add-leave-box" style="background:white; padding:15px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-        <h3><i class="fas fa-birthday-cake"></i> आयु कैलकुलेटर</h3>
-        <label class="input-label">जन्म तिथि:</label>
-        <input type="date" id="dob-input">
-        
-        <label class="input-label" style="margin-top:10px;">आज की तारीख / गणना तिथि:</label>
-        <input type="date" id="dob-target">
-        
-        <button class="btn-save" onclick="calculateAge()">गणना करें</button>
-        <div style="text-align:center; margin-top:20px; padding:15px; background:#f3e5f5; border-radius:8px; border:1px solid #e1bee7;">
-            <h2 id="age-text" style="text-align:center; margin:0; color:#4a148c; font-size:1.1rem;">-</h2>
-        </div>
-    </div>
-</div>
-
-<div id="view-notes" class="app-view" style="display:none; padding:10px;">
-    <div class="keep-input-box" style="background:white; padding:15px; border-radius:12px; margin-bottom:15px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-        <input type="text" id="note-title" placeholder="शीर्षक (Title)">
-        <textarea id="note-text" placeholder="यहाँ नोट लिखें..."></textarea>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-            <button class="btn-save" style="width:auto; margin:0; padding:8px 20px;" onclick="addNote()">
-                <i class="fas fa-save"></i> Save
-            </button>
-        </div>
-    </div>
-    <div id="notes-list" class="notes-grid"></div>
-</div>
-
-<div id="profileModal" class="modal">
-    <div class="modal-content" style="width:90%; padding:20px;"></div>
-</div>
-
-<div id="ledgerModal" class="modal">
-    <div class="modal-content" style="width:98%; max-width:900px; padding:0; height:92vh; display:flex; flex-direction:column; overflow:hidden;">
-        <div style="background:#eee; padding:12px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <h3 id="modal-leave-name" style="margin:0; color:#333; font-size:1.1rem;">अवकाश</h3>
-                <small id="modal-sub-info" style="color:#555; font-weight:bold;"></small>
+            <div class="card" id="calendar-swipe-area">
+                <div id="calendar-grid">
+                    <div class="day-name">Sun</div><div class="day-name">Mon</div><div class="day-name">Tue</div><div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div><div class="day-name">Sat</div>
+                    <div id="calendar-days"></div>
+                </div>
             </div>
-            <span class="close-btn" onclick="closeLedgerModal()" style="font-size:2rem; color:#c0392b; cursor:pointer;">&times;</span>
-        </div>
-        <div class="ledger-action-panel" style="background:#fff; padding:10px; border-bottom:1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <button class="action-tab active-tab" onclick="switchActionTab('debit')" id="tab-debit">
-                    <i class="fas fa-calendar-minus"></i> अवकाश लें (Apply)
-                </button>
-                <button class="action-tab" onclick="switchActionTab('credit')" id="tab-credit">
-                    <i class="fas fa-plus-circle"></i> <span id="tab-credit-text">कोटा बढ़ाएं</span>
-                </button>
+
+            <div class="card">
+                <h4 style="margin: 0 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;">इस माह के अवकाश</h4>
+                <ul id="month-holiday-list" class="holiday-list-style"></ul>
             </div>
-            <div id="form-debit">
-                <div class="date-row" style="display:flex; gap:8px;">
+
+            <div class="card">
+                <h4 style="margin: 0 0 10px 0;">वर्ष 2025-26 अवकाश सूची</h4>
+                <table style="width:100%">
+                    <tbody id="header-holiday-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-manager" class="app-view">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin:0;">अवकाश विवरण</h3>
+                    <select id="dashboard-year-select" style="width: auto; padding: 5px;" onchange="updateDashboardYear()"></select>
+                </div>
+                
+                <h4 style="color:#4e54c8; margin-bottom:5px;">आकस्मिक अवकाश (CL/Pratikar)</h4>
+                <table>
+                    <thead><tr><th>प्रकार</th><th>कुल</th><th>उपभोग</th><th>शेष</th><th>Manage</th></tr></thead>
+                    <tbody id="balance-body-short"></tbody>
+                </table>
+
+                <h4 style="color:#e67e22; margin-bottom:5px; margin-top:15px;">दीर्घकालीन अवकाश (EL/ML/CCL)</h4>
+                <table>
+                    <thead><tr><th>प्रकार</th><th>कुल</th><th>उपभोग</th><th>शेष</th><th>Manage</th></tr></thead>
+                    <tbody id="balance-body-long"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-top:0;">नया अवकाश दर्ज करें</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button class="btn-reset short-btn sec-btn active-sec" style="flex:1; background:#4e54c8;" onclick="setSection('short')">Short Leave</button>
+                    <button class="btn-reset long-btn sec-btn" style="flex:1; background:#aaa;" onclick="setSection('long')">Long Leave</button>
+                </div>
+                
+                <label class="input-label">अवकाश का प्रकार:</label>
+                <select id="leave-type" onchange="checkInputVisibility()"></select>
+                
+                <div id="pratikar-select-box" style="display:none; background:#ffebee; padding:10px; border-radius:5px; margin-bottom:10px;">
+                    <small style="color:red;">* इसके लिए नीचे "Manage" (डैशबोर्ड) में जाकर पहले प्रतिकर कमाना (Earn) जरूरी है।</small>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
                     <div style="flex:1;">
-                        <label class="input-label">कब से (From):</label>
+                        <label class="input-label">कब से (Start):</label>
                         <input type="date" id="action-start">
                     </div>
                     <div style="flex:1;">
-                        <label class="input-label">कब तक (To):</label>
+                        <label class="input-label">कब तक (End):</label>
                         <input type="date" id="action-end">
                     </div>
                 </div>
-                <button class="btn-save" style="margin-top:10px; background:#c0392b;" onclick="submitLeaveEntry()">
-                    <i class="fas fa-check"></i> अवकाश दर्ज करें
-                </button>
+                
+                <button class="btn-save" onclick="addLeave()"><i class="fas fa-plus-circle"></i> अवकाश दर्ज करें</button>
             </div>
-            <div id="form-credit" style="display:none;">
-                </div>
+
+            <div class="card">
+                <h4 style="margin:0 0 10px 0;">हाल ही में लिए गए अवकाश</h4>
+                <ul id="dashboard-history-list" class="holiday-list-style"></ul>
+            </div>
         </div>
-        <div style="flex:1; overflow:auto; padding:5px; background:#fafafa;">
-            <div style="padding:8px; border-bottom:1px solid #eee; font-weight:bold; color:#555;">
-                <i class="fas fa-history"></i> पिछला रिकॉर्ड / हिस्ट्री
+
+        <div id="view-dob" class="app-view">
+            <div class="card">
+                <h3 style="margin-top:0;">आयु कैलकुलेटर</h3>
+                <label class="input-label">जन्म तिथि (DOB):</label>
+                <input type="date" id="dob-input">
+                <label class="input-label">किस तारीख तक (Target Date):</label>
+                <input type="date" id="dob-target">
+                <button class="btn-save" onclick="calculateAge()">आयु निकालें</button>
+                <div id="age-text" style="text-align: center; margin-top: 15px; font-weight: bold; font-size: 1.2rem; color: #4e54c8;"></div>
             </div>
-            <table class="service-book-table">
-                <thead id="sb-thead"></thead>
-                <tbody id="sb-tbody"></tbody>
-            </table>
+        </div>
+
+        <div id="view-notes" class="app-view">
+            <div class="card">
+                <h3 style="margin-top:0;">मेरे नोट्स</h3>
+                <input type="text" id="note-title" placeholder="Title (Ex: Meeting)">
+                <textarea id="note-text" rows="3" placeholder="Write something..." style="width:100%; border:1px solid #ddd; padding:10px; border-radius:5px;"></textarea>
+                <button class="btn-save" style="margin-top:10px;" onclick="addNote()">नोट सेव करें</button>
+            </div>
+            <div id="notes-list"></div>
+        </div>
+
+        <nav class="nav-bar">
+            <button class="nav-btn active-nav" onclick="switchTab('view-calendar')">
+                <i class="fas fa-calendar-alt"></i> Calendar
+            </button>
+            <button class="nav-btn" onclick="switchTab('view-manager')">
+                <i class="fas fa-tasks"></i> Manager
+            </button>
+            <button class="nav-btn" onclick="switchTab('view-dob')">
+                <i class="fas fa-calculator"></i> Age Cal
+            </button>
+            <button class="nav-btn" onclick="switchTab('view-notes')">
+                <i class="fas fa-sticky-note"></i> Notes
+            </button>
+        </nav>
+    </div>
+
+    <div id="ledgerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modal-leave-name" style="margin:0;">Leave Name</h3>
+                    <small id="modal-sub-info">Details</small>
+                </div>
+                <span class="close-btn" onclick="closeLedgerModal()">&times;</span>
+            </div>
+            
+            <div class="modal-tabs">
+                <button id="tab-debit" class="action-tab active-tab" onclick="switchActionTab('debit')">हिसाब (Ledger)</button>
+                <button id="tab-credit" class="action-tab" onclick="switchActionTab('credit')">कोटा (Credit)</button>
+            </div>
+
+            <div style="padding:15px;">
+                <div id="form-credit" style="display:none;">
+                    <h4 id="tab-credit-text">कोटा सेट करें</h4>
+                    </div>
+
+                <div id="form-debit">
+                    <div style="max-height: 250px; overflow-y: auto;">
+                        <table>
+                            <thead id="sb-thead"></thead>
+                            <tbody id="sb-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="pratikarModal" class="modal">
-    <div class="modal-content" style="padding: 15px;"></div>
-</div>
+    <div id="profileModal" class="modal">
+        <div class="modal-content" style="padding:15px;">
+            </div>
+    </div>
 
-<script src="cordova.js"></script>
-<script type="module" src="main.js"></script>
+    <div id="pratikarModal" class="modal">
+        <div class="modal-content" style="padding:15px;">
+            </div>
+    </div>
+
+    <script src="cordova.js"></script>
+    <script src="main.js" type="module"></script>
 
 </body>
 </html>
