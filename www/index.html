@@ -3,204 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content:;
-        style-src * 'unsafe-inline';
-        script-src * 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com;
-        connect-src * https://www.googleapis.com https://securetoken.googleapis.com;
-        img-src * 'self' data: https:;
-    ">
-
     <title>Employee Leave Manager</title>
-    
-    <link rel="stylesheet" href="css/style.css">
-    
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="theme-color" content="#4e54c8">
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-card">
-            <h2 class="login-title">Leave Manager</h2>
-            <p class="login-subtitle">Uttarakhand Govt. Employees</p>
-            
-            <input type="email" id="user-email" class="login-input" placeholder="Email Address">
-            <input type="password" id="user-pass" class="login-input" placeholder="Password">
-            
-            <button class="btn-auth" onclick="emailLogin()">
-                Login (लॉगिन)
-            </button>
-
-            <button class="btn-link" onclick="emailSignup()">
-                नया खाता बनाएं (Register)
-            </button>
+<header class="dual-gradient-bg">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px;">
+        <div style="flex: 1;">
+            <h2 style="margin:0; font-size:1.5rem; font-weight: 800; letter-spacing: 0.5px;">Employee Leave Manager</h2>
+            <div style="font-size: 0.75rem; opacity: 0.95; margin-top: 2px;">Govt. Staff Service Book & Record</div>
+        </div>
+        <div class="profile-icon-container" onclick="openProfileModal()" style="margin-left: 10px;">
+            <i class="fas fa-user-circle" style="font-size: 1.8rem;"></i>
         </div>
     </div>
+    
+    <details class="holiday-dropdown" style="margin-top:10px; background:rgba(255,255,255,0.2); border-radius:8px; border:1px solid rgba(255,255,255,0.3);">
+        <summary style="padding:10px; font-size:0.9rem; cursor:pointer; color:white; font-weight:bold; list-style:none; display: flex; justify-content: space-between; align-items: center;">
+            <span>📅 अवकाश सूची (Holiday List)</span>
+            <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+        </summary>
+        <div class="dropdown-content" style="background:white; color:black; padding:10px; border-radius:0 0 8px 8px; max-height:300px; overflow-y:auto;">
+            <table class="balance-table" style="margin:0;">
+                <thead>
+                    <tr style="background:#eee;"><th>दिनांक</th><th>पर्व / त्यौहार</th></tr>
+                </thead>
+                <tbody id="header-holiday-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </details>
+    
+    <div id="auth-section" style="margin-top: 10px; text-align:right;">
+        <button id="login-btn" class="glass-btn" onclick="loginWithGoogle()">
+            <i class="fab fa-google"></i> Login
+        </button>
+        <div id="user-info" style="display:none; color: white; font-weight:bold; font-size: 0.8rem;">
+            <i class="fas fa-check-circle"></i> लॉग इन
+        </div>
+    </div>
+</header>
 
-    <div id="main-app" style="display: none;">
+<div class="navbar">
+    <button class="nav-btn active-nav" onclick="switchTab('view-calendar')">
+        <i class="fas fa-calendar-alt"></i><br>कैलेंडर
+    </button>
+    <button class="nav-btn" onclick="switchTab('view-manager')">
+        <i class="fas fa-file-invoice"></i><br>Leave A/C
+    </button>
+    <button class="nav-btn" onclick="switchTab('view-dob')">
+        <i class="fas fa-calculator"></i><br>आयु
+    </button>
+    <button class="nav-btn" onclick="switchTab('view-notes')">
+        <i class="fas fa-sticky-note"></i><br>नोट्स
+    </button>
+</div>
+
+<div id="view-calendar" class="app-view">
+    <div class="calendar-container" id="calendar-swipe-area">
         
-        <header class="dual-gradient-bg">
-            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px;">
-                <div style="flex: 1;">
-                    <h2 style="margin:0; font-size:1.5rem; font-weight: 800; letter-spacing: 0.5px;">Leave Manager</h2>
-                    <div style="font-size: 0.75rem; opacity: 0.95; margin-top: 2px;">Service Book & Record</div>
-                </div>
-                <div class="profile-icon-container" onclick="openProfileModal()">
-                    <i class="fas fa-user-circle" style="font-size: 1.8rem;"></i>
-                </div>
-                <div onclick="logoutApp()" style="margin-left: 15px; color: white; cursor: pointer;">
-                    <i class="fas fa-sign-out-alt" style="font-size: 1.5rem;"></i>
-                </div>
-            </div>
+        <div class="calendar-header dual-gradient-bg" style="border-radius: 12px 12px 0 0; padding: 10px;">
+            <button onclick="changeMonth(-1)">&#10094;</button>
             
-            <details class="holiday-dropdown" style="margin-top:10px; background:rgba(255,255,255,0.2); border-radius:8px; border:1px solid rgba(255,255,255,0.3);">
-                <summary style="padding:10px; font-size:0.9rem; cursor:pointer; color:white; font-weight:bold; display: flex; justify-content: space-between; align-items: center;">
-                    <span>📅 अवकाश सूची (Holiday List)</span>
-                    <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-                </summary>
-                <div class="dropdown-content" style="background:white; color:black; padding:10px; border-radius:0 0 8px 8px; max-height:300px; overflow-y:auto;">
-                    <table class="balance-table" style="margin:0;">
-                        <thead><tr style="background:#eee;"><th>दिनांक</th><th>पर्व / त्यौहार</th></tr></thead>
-                        <tbody id="header-holiday-table-body"></tbody>
-                    </table>
-                </div>
-            </details>
-        </header>
+            <div class="cal-dropdowns" style="display:flex; gap:5px; align-items:center;">
+                <select id="cal-month-select" onchange="jumpToDate()"></select>
+                <select id="cal-year-select" onchange="jumpToDate()"></select>
+            </div>
 
-        <div id="view-calendar" class="app-view">
-            <div class="calendar-container" id="calendar-swipe-area">
-                <div class="calendar-header dual-gradient-bg" style="border-radius: 12px 12px 0 0; padding: 10px;">
-                    <button onclick="changeMonth(-1)">&#10094;</button>
-                    <div class="cal-dropdowns" style="display:flex; gap:5px; align-items:center;">
-                        <select id="cal-month-select" onchange="jumpToDate()"></select>
-                        <select id="cal-year-select" onchange="jumpToDate()"></select>
+            <button onclick="changeMonth(1)">&#10095;</button>
+        </div>
+
+        <div class="weekdays"><div>रवि</div><div>सोम</div><div>मंगल</div><div>बुध</div><div>गुरु</div><div>शुक्र</div><div>शनि</div></div>
+        <div class="calendar-grid" id="calendar-days"></div>
+    </div>
+    
+    <div class="info-card">
+        <h4 class="card-title" style="color:#4e54c8; border-bottom:1px solid #eee; margin-bottom:10px;">
+            <i class="fas fa-info-circle"></i> इस माह के अवकाश
+        </h4>
+        <ul id="month-holiday-list" class="holiday-list-style" style="padding:0; list-style:none;"></ul>
+    </div>
+</div>
+
+<div id="view-manager" class="app-view" style="display:none;">
+    
+    <div style="text-align:center; padding:15px; background:#e8eaf6; margin: 15px 10px 5px 10px; border-radius:8px; border: 1px solid #c5cae9; display:flex; flex-direction:column; align-items:center;">
+        <label style="font-size:0.9rem; color:#3949ab; font-weight:bold; margin-bottom:5px;">चयनित वर्ष (Selected Year)</label>
+        <select id="dashboard-year-select" onchange="updateDashboardYear()" style="font-size:1.2rem; font-weight:bold; color:#1a237e; padding:8px 20px; border-radius:20px; border:2px solid #3949ab; background:white; outline:none; text-align:center; width:auto;">
+            </select>
+    </div>
+
+    <div class="card-box">
+        <h4 style="color:#4e54c8; margin:0 0 10px 0; border-bottom:2px solid #eee; padding-bottom:5px;">
+            अल्पकालीन अवकाश (Short Term)
+        </h4>
+        <table class="balance-table">
+            <thead>
+                <tr>
+                    <th style="text-align:left;">अवकाश</th>
+                    <th>कुल देय</th>
+                    <th>उपभोग</th>
+                    <th>शेष</th>
+                    <th>Manage</th>
+                </tr>
+            </thead>
+            <tbody id="balance-body-short"></tbody>
+        </table>
+    </div>
+
+    <div class="card-box" style="margin-top:15px;">
+        <h4 style="color:#c0392b; margin:0 0 10px 0; border-bottom:2px solid #eee; padding-bottom:5px;">
+            दीर्घकालीन / सेवा अवकाश (Long Term)
+        </h4>
+        <table class="balance-table">
+            <thead>
+                <tr>
+                    <th style="text-align:left;">अवकाश</th>
+                    <th>कुल देय</th>
+                    <th>उपभोग</th>
+                    <th>शेष</th>
+                    <th>Manage</th>
+                </tr>
+            </thead>
+            <tbody id="balance-body-long"></tbody>
+        </table>
+    </div>
+    
+    <div class="card-box" style="margin-top:15px;">
+        <h4 style="color:#333; margin:0 0 10px 0; border-bottom:2px solid #eee; padding-bottom:5px;">
+            <i class="fas fa-history"></i> अवकाश इतिहास (इस वर्ष)
+        </h4>
+        <ul id="dashboard-history-list" class="holiday-list-style" style="padding:0; list-style:none; max-height:200px; overflow-y:auto;">
+            </ul>
+    </div>
+</div>
+
+<div id="view-dob" class="app-view" style="display:none; padding:15px;">
+    <div class="add-leave-box">
+        <h3><i class="fas fa-birthday-cake"></i> आयु कैलकुलेटर</h3>
+        <label class="input-label">जन्म तिथि:</label>
+        <input type="date" id="dob-input">
+        
+        <label class="input-label" style="margin-top:10px;">आज की तारीख / गणना तिथि:</label>
+        <input type="date" id="dob-target">
+        
+        <button class="btn-save" onclick="calculateAge()">गणना करें</button>
+        <div style="text-align:center; margin-top:20px; padding:15px; background:#f3e5f5; border-radius:8px; border:1px solid #e1bee7;">
+            <h2 id="age-text" style="text-align:center; margin:0; color:#4a148c; font-size:1.1rem;">-</h2>
+        </div>
+    </div>
+</div>
+
+<div id="view-notes" class="app-view" style="display:none; padding:10px;">
+    <div class="keep-input-box">
+        <input type="text" id="note-title" placeholder="शीर्षक (Title)">
+        <textarea id="note-text" placeholder="यहाँ नोट लिखें..."></textarea>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <input type="datetime-local" id="note-date" style="width:auto;">
+            <button class="btn-save" style="width:auto; margin:0; padding:8px 20px;" onclick="addNote()">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+    </div>
+    <div id="notes-list" class="notes-grid"></div>
+</div>
+
+<div id="profileModal" class="modal">
+    <div class="modal-content" style="width:90%; padding:20px;">
+        </div>
+</div>
+
+<div id="ledgerModal" class="modal">
+    <div class="modal-content" style="width:98%; max-width:900px; padding:0; height:92vh; display:flex; flex-direction:column; overflow:hidden;">
+        
+        <div style="background:#eee; padding:12px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 id="modal-leave-name" style="margin:0; color:#333; font-size:1.1rem;">अवकाश</h3>
+                <small id="modal-sub-info" style="color:#555; font-weight:bold;"></small>
+            </div>
+            <span class="close-btn" onclick="closeLedgerModal()" style="font-size:2rem; color:#c0392b; cursor:pointer;">&times;</span>
+        </div>
+
+        <div class="ledger-action-panel" style="background:#fff; padding:10px; border-bottom:1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <button class="action-tab active-tab" onclick="switchActionTab('debit')" id="tab-debit">
+                    <i class="fas fa-calendar-minus"></i> अवकाश लें (Apply)
+                </button>
+                <button class="action-tab" onclick="switchActionTab('credit')" id="tab-credit">
+                    <i class="fas fa-plus-circle"></i> <span id="tab-credit-text">कोटा बढ़ाएं</span>
+                </button>
+            </div>
+
+            <div id="form-debit">
+                <div class="date-row" style="display:flex; gap:8px;">
+                    <div style="flex:1;">
+                        <label class="input-label">कब से (From):</label>
+                        <input type="date" id="action-start">
                     </div>
-                    <button onclick="changeMonth(1)">&#10095;</button>
-                </div>
-
-                <div class="weekdays"><div>रवि</div><div>सोम</div><div>मंगल</div><div>बुध</div><div>गुरु</div><div>शुक्र</div><div>शनि</div></div>
-                <div class="calendar-grid" id="calendar-days"></div>
-            </div>
-            
-            <div class="info-card">
-                <h4 style="color:#4e54c8; border-bottom:1px solid #eee; margin:0 0 10px 0; padding-bottom:5px;">
-                    <i class="fas fa-info-circle"></i> इस माह के अवकाश
-                </h4>
-                <ul id="month-holiday-list" class="holiday-list-style"></ul>
-            </div>
-        </div>
-
-        <div id="view-manager" class="app-view" style="display:none;">
-            <div style="text-align:center; padding:15px; margin: 10px;">
-                <select id="dashboard-year-select" onchange="updateDashboardYear()" style="padding:8px 20px; border-radius:20px; font-weight:bold; color:#1a237e; border: 2px solid #3949ab;"></select>
-            </div>
-
-            <div class="card-box">
-                <h4 style="color:#4e54c8; margin:0 0 10px 0;">अल्पकालीन अवकाश (Short Term)</h4>
-                <table class="balance-table">
-                    <thead><tr><th style="text-align:left;">अवकाश</th><th>कुल</th><th>उपभोग</th><th>शेष</th><th>Manage</th></tr></thead>
-                    <tbody id="balance-body-short"></tbody>
-                </table>
-            </div>
-
-            <div class="card-box">
-                <h4 style="color:#c0392b; margin:0 0 10px 0;">दीर्घकालीन अवकाश (Long Term)</h4>
-                <table class="balance-table">
-                    <thead><tr><th style="text-align:left;">अवकाश</th><th>कुल</th><th>उपभोग</th><th>शेष</th><th>Manage</th></tr></thead>
-                    <tbody id="balance-body-long"></tbody>
-                </table>
-            </div>
-            
-            <div class="card-box">
-                <h4 style="color:#333; margin:0 0 10px 0;">अवकाश इतिहास</h4>
-                <ul id="dashboard-history-list" class="holiday-list-style"></ul>
-            </div>
-        </div>
-
-        <div id="view-dob" class="app-view" style="display:none; padding:15px;">
-            <div class="card-box">
-                <h3><i class="fas fa-birthday-cake"></i> आयु कैलकुलेटर</h3>
-                <label class="input-label">जन्म तिथि:</label>
-                <input type="date" id="dob-input">
-                <label class="input-label" style="margin-top:10px;">गणना तिथि:</label>
-                <input type="date" id="dob-target">
-                <button class="btn-save" onclick="calculateAge()">गणना करें</button>
-                <div style="text-align:center; margin-top:20px; padding:15px; background:#f3e5f5; border-radius:8px;">
-                    <h2 id="age-text" style="margin:0; color:#4a148c;">-</h2>
-                </div>
-            </div>
-        </div>
-
-        <div id="view-notes" class="app-view" style="display:none; padding:10px;">
-            <div class="card-box">
-                <input type="text" id="note-title" placeholder="शीर्षक (Title)">
-                <textarea id="note-text" placeholder="यहाँ नोट लिखें..." style="margin-top:10px;"></textarea>
-                <button class="btn-save" onclick="addNote()">Save Note</button>
-            </div>
-            <div id="notes-list" style="padding:5px;"></div>
-        </div>
-
-        <div class="navbar">
-            <button class="nav-btn active-nav" onclick="switchTab('view-calendar')">
-                <i class="fas fa-calendar-alt"></i><br>कैलेंडर
-            </button>
-            <button class="nav-btn" onclick="switchTab('view-manager')">
-                <i class="fas fa-file-invoice"></i><br>Leave A/C
-            </button>
-            <button class="nav-btn" onclick="switchTab('view-dob')">
-                <i class="fas fa-calculator"></i><br>आयु
-            </button>
-            <button class="nav-btn" onclick="switchTab('view-notes')">
-                <i class="fas fa-sticky-note"></i><br>नोट्स
-            </button>
-        </div>
-    </div>
-
-    <div id="ledgerModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div><h3 id="modal-leave-name" style="margin:0;">Leave</h3><small id="modal-sub-info">Details</small></div>
-                <span class="close-btn" onclick="closeLedgerModal()">&times;</span>
-            </div>
-            
-            <div class="ledger-action-panel">
-                <div class="modal-tabs">
-                    <button id="tab-debit" class="action-tab active-tab" onclick="switchActionTab('debit')">हिसाब (Ledger)</button>
-                    <button id="tab-credit" class="action-tab" onclick="switchActionTab('credit')">कोटा (Credit)</button>
-                </div>
-
-                <div id="form-debit">
-                    <div style="display:flex; gap:10px;">
-                        <div style="flex:1;"><label class="input-label">कब से:</label><input type="date" id="action-start"></div>
-                        <div style="flex:1;"><label class="input-label">कब तक:</label><input type="date" id="action-end"></div>
+                    <div style="flex:1;">
+                        <label class="input-label">कब तक (To):</label>
+                        <input type="date" id="action-end">
                     </div>
-                    <button class="btn-save" style="margin-top:15px;" onclick="submitLeaveEntry()">अवकाश दर्ज करें</button>
                 </div>
-
-                <div id="form-credit" style="display:none;">
-                    <div id="credit-container"></div> </div>
+                <button class="btn-save" style="margin-top:10px; background:#c0392b;" onclick="submitLeaveEntry()">
+                    <i class="fas fa-check"></i> अवकाश दर्ज करें
+                </button>
             </div>
 
-            <div style="flex:1; overflow:auto; padding:10px; background:#fafafa;">
-                <table class="service-book-table">
-                    <thead id="sb-thead"></thead>
-                    <tbody id="sb-tbody"></tbody>
-                </table>
+            <div id="form-credit" style="display:none;">
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <div id="credit-year-box" style="flex:1;">
+                        <label class="input-label">किस वर्ष के लिए:</label>
+                        <select id="action-year" style="width:100%; padding:10px; border-radius:5px;"></select>
+                    </div>
+                    <div style="flex:1;">
+                        <label class="input-label" id="lbl-credit-val">कुल दिन (Days):</label>
+                        <input type="number" id="action-val" placeholder="Ex: 14 or 30" style="padding:10px;">
+                    </div>
+                </div>
+                <small id="credit-hint" style="color:#666; margin-top:5px; display:block;">
+                    * यह संख्या आपके कुल कोटे में जोड़ दी जाएगी।
+                </small>
+                <button class="btn-save" style="margin-top:10px; background:#27ae60;" onclick="submitCreditEntry()">
+                    <i class="fas fa-save"></i> अपडेट करें
+                </button>
             </div>
         </div>
-    </div>
 
-    <div id="profileModal" class="modal">
-        <div class="modal-content" style="padding:15px;"></div>
-    </div>
+        <div style="flex:1; overflow:auto; padding:5px; background:#fafafa;">
+            <div style="padding:8px; border-bottom:1px solid #eee; font-weight:bold; color:#555;">
+                <i class="fas fa-history"></i> पिछला रिकॉर्ड / हिस्ट्री
+            </div>
+            <table class="service-book-table">
+                <thead id="sb-thead"></thead>
+                <tbody id="sb-tbody"></tbody>
+            </table>
+        </div>
+        
+        </div>
+</div>
 
-    <div id="pratikarModal" class="modal">
-        <div class="modal-content" style="padding:15px;"></div>
-    </div>
+<div id="pratikarModal" class="modal">
+    <div class="modal-content" style="padding: 15px;">
+        </div>
+</div>
 
-    <script src="cordova.js"></script>
-    <script src="main.js" type="module"></script>
-
+<script type="module" src="main.js"></script>
 </body>
 </html>
