@@ -1,7 +1,7 @@
 {
   "name": "com.Hemraj.EmpLeaveManager",
   "displayName": "Employee Leave Manager",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Leave management app for employees.",
   "main": "index.js",
   "scripts": {
@@ -22,11 +22,7 @@
     "plugins": {
       "cordova-plugin-androidx-adapter": {},
       "cordova-plugin-file": {},
-      "cordova-plugin-file-opener2": {},
-      "cordova-plugin-google-plus": {
-        "PLAY_SERVICES_VERSION": "17.0.0",
-        "WEB_APPLICATION_CLIENT_ID": "61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com"
-      }
+      "cordova-plugin-file-opener2": {}
     },
     "platforms": [
       "android"

@@ -2,63 +2,44 @@ name: Build Android APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
-    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout Code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
 
-      # 3. Setup Java
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
-      # 4. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Dependencies (Standard)
       - name: Install Dependencies
         run: |
-          rm -f package-lock.json
+          rm -rf node_modules package-lock.json platforms plugins
           npm install -g cordova
           npm install
 
-      # NEW STEP: Download Google Plugin via ZIP (Success Guaranteed)
-      - name: Install Google Plugin Manually
-        run: |
-          wget https://github.com/EddyVerbruggen/cordova-plugin-google-plus/archive/refs/heads/master.zip -O plugin.zip
-          unzip plugin.zip
-          PLUGIN_DIR=$(ls -d cordova-plugin-google-plus-*)
-          cordova plugin add ./$PLUGIN_DIR --variable PLAY_SERVICES_VERSION=17.0.0 --variable WEB_APPLICATION_CLIENT_ID=61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com
-
-      # 6. Add Android Platform
       - name: Add Android Platform
-        run: cordova platform add android
+        run: cordova platform add android@13
 
-      # 7. Build APK
       - name: Build Android APK
-        run: cordova build android --debug --packageType=apk
+        run: cordova build android --debug
 
-      # 8. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
