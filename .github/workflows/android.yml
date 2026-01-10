@@ -35,11 +35,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Dependencies (FIXED: Force HTTPS instead of SSH)
+      # 5. Install Dependencies (Master Fix: Remove Lockfile & Force HTTPS)
       - name: Install Dependencies
         run: |
+          # Delete lock file to clear old SSH references
+          rm -f package-lock.json
+          
+          # Force Git to use HTTPS instead of SSH
           git config --global url."https://github.com/".insteadOf git@github.com:
-          git config --global url."https://".insteadOf git://
+          git config --global url."https://github.com/".insteadOf ssh://git@github.com/
+          
+          # Install Cordova and dependencies
           npm install -g cordova
           npm install
 
