@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 // --- 1. CONFIGURATION ---
@@ -16,10 +16,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
-let currentUser = null;
 
-// --- 2. DATA VARIABLES ---
+// --- 2. GLOBAL VARIABLES ---
+let currentUser = null;
 let leaveHistory = [];
 let earnedPratikar = []; 
 let manualCredits = {};  
@@ -29,7 +28,6 @@ let selectedDashboardYear = new Date().getFullYear();
 let wrongPinAttempts = 0; 
 
 // --- 3. LEAVE RULES ---
-// Note: ML, CCL, Maternity, Paternity quota set to 0. User must add it once.
 const leaveConfig = {
     "CL": { name: "आकस्मिक (CL)", type: "SHORT", quota: 14, format: "YEARLY", excludeHolidays: true },
     "Pratikar": { name: "प्रतिकर अवकाश", type: "SHORT", quota: 0, format: "MANUAL", excludeHolidays: true },
@@ -41,20 +39,69 @@ const leaveConfig = {
     "Paternity": { name: "पितृत्व", type: "LONG", quota: 0, format: "FIXED_QUOTA", excludeHolidays: false }
 };
 
-// --- DATE FORMATTER (DD-MM-YYYY) ---
+// --- HELPER: DATE FORMATTER ---
 function getIndDate(isoDate) {
     if(!isoDate) return "";
     let p = isoDate.split('-');
     return `${p[2]}-${p[1]}-${p[0]}`;
 }
 
-// --- 4. AUTH & INIT ---
-window.loginWithGoogle = function() { signInWithPopup(auth, provider).then(() => location.reload()).catch(e => alert(e.message)); }
+// --- 4. AUTHENTICATION (Login/Register) ---
+
+// Registration
+window.emailSignup = function() {
+    const e = document.getElementById('user-email').value;
+    const p = document.getElementById('user-pass').value;
+
+    if(!e || !p) return alert("कृपया Email और Password दोनों भरें।");
+    if(p.length < 6) return alert("पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।");
+
+    createUserWithEmailAndPassword(auth, e, p)
+        .then((userCredential) => {
+            alert("सफलतापूर्वक रजिस्टर हो गया! \nऐप लोड हो रहा है...");
+        })
+        .catch((error) => {
+            let msg = error.message;
+            if(error.code === 'auth/email-already-in-use') msg = "यह ईमेल पहले से रजिस्टर्ड है। कृपया लॉगिन करें।";
+            alert("Error: " + msg);
+        });
+}
+
+// Login
+window.emailLogin = function() {
+    const e = document.getElementById('user-email').value;
+    const p = document.getElementById('user-pass').value;
+
+    if(!e || !p) return alert("Email और Password दोनों भरें।");
+
+    signInWithEmailAndPassword(auth, e, p)
+        .then((userCredential) => {
+            console.log("Login Successful");
+        })
+        .catch((error) => {
+            alert("Login Failed: ईमेल या पासवर्ड गलत है।");
+        });
+}
+
+// Logout
+window.logoutApp = function() {
+    signOut(auth).then(() => {
+        location.reload(); 
+    });
+}
+
+// Auth State Listener (Controls UI Switching)
 onAuthStateChanged(auth, async (user) => {
+    const loginScreen = document.getElementById("login-screen");
+    const mainApp = document.getElementById("main-app");
+
     if (user) {
+        // User is Logged In
         currentUser = user;
-        document.getElementById("login-btn").style.display = "none";
-        document.getElementById("user-info").style.display = "block";
+        if(loginScreen) loginScreen.style.display = "none";
+        if(mainApp) mainApp.style.display = "block";
+
+        // Load Data from Firebase
         try {
             const docSnap = await getDoc(doc(db, "users", user.uid));
             if (docSnap.exists()) {
@@ -65,25 +112,37 @@ onAuthStateChanged(auth, async (user) => {
                 userProfile = data.profile || {};
                 myNotes = data.notes || [];
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Data Load Error:", e); }
     } else {
+        // User is Logged Out
+        currentUser = null;
+        if(loginScreen) loginScreen.style.display = "flex";
+        if(mainApp) mainApp.style.display = "none";
+        
+        // Load Offline Data
         leaveHistory = JSON.parse(localStorage.getItem('uk_history')) || [];
         earnedPratikar = JSON.parse(localStorage.getItem('uk_pratikar')) || [];
         manualCredits = JSON.parse(localStorage.getItem('uk_credits')) || {};
         userProfile = JSON.parse(localStorage.getItem('uk_profile')) || {};
         myNotes = JSON.parse(localStorage.getItem('uk_notes')) || [];
     }
+
+    // Initialize App Components
     refreshAll();
     injectVerificationModal();
     checkDailyNotifications();
 });
 
+// --- 5. DATA SAVING ---
 async function saveData() {
+    // Save Locally
     localStorage.setItem('uk_history', JSON.stringify(leaveHistory));
     localStorage.setItem('uk_pratikar', JSON.stringify(earnedPratikar));
     localStorage.setItem('uk_credits', JSON.stringify(manualCredits));
     localStorage.setItem('uk_profile', JSON.stringify(userProfile));
     localStorage.setItem('uk_notes', JSON.stringify(myNotes));
+    
+    // Save to Cloud (if online)
     if (currentUser) {
         await setDoc(doc(db, "users", currentUser.uid), { 
             history: leaveHistory, pratikar: earnedPratikar, credits: manualCredits, profile: userProfile, notes: myNotes 
@@ -101,7 +160,7 @@ function refreshAll() {
     setSection('short');
 }
 
-// --- 5. HOLIDAYS ---
+// --- 6. HOLIDAYS & CALENDAR ---
 const hindiMonths = ["जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"];
 let currDate = new Date(); 
 let currMonth = currDate.getMonth(); 
@@ -161,8 +220,8 @@ function isHolidayOrSunday(dateObj) {
     let isSun = dateObj.getDay() === 0;
     let d = dateObj.getDate();
     let m = dateObj.getMonth() + 1;
-    if(m === 1 && d <= 13) return true; // Winter
-    if(m === 6) return true; // Summer
+    if(m === 1 && d <= 13) return true; // Winter Vacation
+    if(m === 6) return true; // Summer Vacation
     return (getHolidayName(dateObj) !== null || isSun);
 }
 
@@ -181,7 +240,7 @@ window.renderHeaderHolidays = function() {
     }
 }
 
-// --- 6. NOTIFICATION SYSTEM ---
+// --- 7. NOTIFICATIONS ---
 window.checkDailyNotifications = function() {
     if (!("Notification" in window)) return;
     if (Notification.permission !== "granted") { Notification.requestPermission(); }
@@ -197,17 +256,6 @@ window.checkDailyNotifications = function() {
         showNotification("आज का अवकाश", `आज ${todayHoliday} का अवकाश है।`);
         localStorage.setItem(todayKey, "true");
     }
-
-    let tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    let tmrwHoliday = getHolidayName(tomorrow);
-    let tmrwStr = tomorrow.toISOString().split('T')[0];
-    let tmrwKey = `notif_tmrw_${tmrwStr}`;
-
-    if (tmrwHoliday && currentHour >= 9 && !localStorage.getItem(tmrwKey)) {
-        showNotification("कल का अवकाश", `कल ${tmrwHoliday} का अवकाश है।`);
-        localStorage.setItem(tmrwKey, "true");
-    }
 }
 
 function showNotification(title, body) {
@@ -216,7 +264,7 @@ function showNotification(title, body) {
     }
 }
 
-// --- 7. PIN SECURITY ---
+// --- 8. PIN SECURITY ---
 window.injectVerificationModal = function() {
     if(document.getElementById('verifyModal')) return;
     let modalHTML = `
@@ -312,7 +360,7 @@ window.resetSpecificLeave = function(type) {
     });
 }
 
-// --- 8. CALENDAR LOGIC ---
+// --- 9. CALENDAR RENDERING ---
 window.populateCalendarDropdowns = function() {
     const mSelect = document.getElementById('cal-month-select');
     const ySelect = document.getElementById('cal-year-select');
@@ -381,7 +429,7 @@ window.renderCalendar = function() {
 }
 window.changeMonth = function(n) { currMonth+=n; if(currMonth<0){currMonth=11;currYear--} if(currMonth>11){currMonth=0;currYear++} renderCalendar(); }
 
-// --- 9. DASHBOARD LOGIC ---
+// --- 10. DASHBOARD STATS ---
 function getMaxActiveYear() {
     let y = new Date().getFullYear();
     leaveHistory.forEach(l => { if(new Date(l.date).getFullYear() > y) y = new Date(l.date).getFullYear(); });
@@ -475,7 +523,7 @@ window.renderDashboard = function() {
     }
 }
 
-// --- 10. MODAL MANAGER ---
+// --- 11. LEDGER MODAL (Service Book) ---
 let currentLeaveType = "";
 window.openLedgerModal = function(type) {
     currentLeaveType = type;
@@ -520,28 +568,18 @@ window.switchActionTab = function(tab) {
     document.getElementById(`tab-${tab}`).classList.add('active-tab');
     
     let conf = leaveConfig[currentLeaveType];
-    let creditText = document.getElementById('tab-credit-text');
-    let creditYearBox = document.getElementById('credit-year-box');
-    let lblVal = document.getElementById('lbl-credit-val');
-    let creditHint = document.getElementById('credit-hint');
-
-    // Reset UI state for form
     let formCredit = document.getElementById('form-credit');
-    formCredit.innerHTML = ""; // Clear injection
+    formCredit.innerHTML = ""; 
 
     if(tab === 'credit') {
-        // ONE-TIME QUOTA CHECK
         if(conf.format === 'FIXED_QUOTA') {
             let hasCredit = false;
             if(manualCredits[currentLeaveType]) {
                 hasCredit = Object.values(manualCredits[currentLeaveType]).some(val => val > 0);
             }
-
             if(hasCredit) {
-                // LOCK UI
                 formCredit.innerHTML = `<div style="padding:15px; color:green; background:#e8f5e9; border:1px solid #c8e6c9; border-radius:5px; text-align:center;"><b><i class="fas fa-check-circle"></i> सेवा कोटा पहले ही सेट किया जा चुका है।</b><br><small>इसे बदलने के लिए पहले पुराना कोटा डिलीट (Reset) करें।</small></div>`;
             } else {
-                // SHOW INPUT (Normal Logic)
                 formCredit.innerHTML = `
                     <div style="display:flex; gap:8px; align-items:center;">
                         <div style="flex:1;">
@@ -555,14 +593,10 @@ window.switchActionTab = function(tab) {
             }
         } 
         else {
-            // NORMAL YEARLY CREDIT
             let yearOptions = "";
             let startY = userProfile.appt ? new Date(userProfile.appt).getFullYear() : 2014;
             let endY = getMaxActiveYear() + 1;
             for(let y=startY; y<=endY; y++) yearOptions += `<option value="${y}">${y}</option>`;
-
-            let label = (conf.format === 'YEARLY') ? "साल का कोटा सेट करें" : "कोटा बढ़ाएं";
-            creditText.innerText = label;
             
             formCredit.innerHTML = `
                 <div style="display:flex; gap:8px; align-items:center;">
@@ -647,7 +681,7 @@ function getRanges(leaves) {
     return ranges;
 }
 
-// --- 11. PROFILE UI ---
+// --- 12. PROFILE UI & LOGIC ---
 window.openProfileModal = function() {
     let modal = document.getElementById('profileModal');
     let content = modal.querySelector('.modal-content');
@@ -769,7 +803,7 @@ window.saveProfile = function() {
     saveData(); document.getElementById('profileModal').style.display='none'; refreshAll();
 }
 
-// --- 12. PDF GENERATOR ---
+// --- 13. PDF GENERATOR ---
 window.downloadLedgerPDF = function(type) {
     let conf = leaveConfig[type];
     let p = userProfile;
@@ -852,7 +886,7 @@ window.downloadLedgerPDF = function(type) {
     setTimeout(() => { printWin.print(); }, 500);
 }
 
-// --- 13. PRATIKAR MANAGER (Standard) ---
+// --- 14. PRATIKAR MANAGER ---
 window.openPratikarModal = function() {
     let modal = document.getElementById('pratikarModal');
     let content = modal.querySelector('.modal-content');
@@ -984,7 +1018,7 @@ window.deleteConsumedPratikar = function(leaveDate) {
     });
 }
 
-// --- 14. ACTIONS ---
+// --- 15. USER ACTIONS ---
 window.submitLeaveEntry = function() {
     let s = document.getElementById('action-start').value;
     let e = document.getElementById('action-end').value;
@@ -1020,7 +1054,7 @@ window.submitCreditEntry = function() {
     document.getElementById('action-val').value = "";
 }
 
-// --- 15. UTILS ---
+// --- 16. UTILS ---
 window.deleteLeave = function(d) { 
     verifyAndExecute("हटाएं?", () => {
         leaveHistory = leaveHistory.filter(l => l.date !== d); 
@@ -1041,8 +1075,6 @@ window.switchTab = function(id) {
     let map = {'view-calendar':0, 'view-manager':1, 'view-dob':2, 'view-notes':3};
     let btns = document.querySelectorAll('.nav-btn');
     if(btns[map[id]]) btns[map[id]].classList.add('active-nav');
-    let holDropdown = document.querySelector('.holiday-dropdown');
-    if(holDropdown) { if(id === 'view-calendar') holDropdown.style.display = 'block'; else holDropdown.style.display = 'none'; }
 }
 window.calculateAge = function() {
     let dob = document.getElementById('dob-input').value;
@@ -1093,6 +1125,7 @@ window.addLeave = function() {
     window.submitLeaveEntry(); 
 }
 
+// --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
     populateCalendarDropdowns();
     switchTab('view-calendar');
