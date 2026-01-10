@@ -14,26 +14,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout Code
+      # 1. Checkout Code (Updated to v4)
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2. Setup Node.js
+      # 2. Setup Node.js (Updated to v4 & Node 18)
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '18'
 
-      # 3. Setup Java (Required for Android Build)
+      # 3. Setup Java (Updated to v4 & Java 17 - Required for Gradle 8)
       - name: Setup Java JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       # 4. Setup Android SDK
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v3
 
       # 5. Install Cordova & Dependencies
       - name: Install Dependencies
@@ -49,9 +49,9 @@ jobs:
       - name: Build Android APK
         run: cordova build android --debug --packageType=apk
 
-      # 8. Upload APK to GitHub Artifacts
+      # 8. Upload APK (Updated to v4 - This fixes your error)
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
