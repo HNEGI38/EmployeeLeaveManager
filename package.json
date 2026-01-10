@@ -1,29 +1,8 @@
-{
-  "project_info": {
-    "project_number": "123456789012",
-    "project_id": "dummy-project",
-    "storage_bucket": "dummy-project.appspot.com"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:abcdef123456",
-        "android_client_info": {
-          "package_name": "com.gyansangrah.employeeleavemanager"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDummyKeyForBuildPurposeOnly"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    }
-  ],
-  "configuration_version": "1"
-}
+Valid from: Sun Jan 04 04: 08: 01 GMT 2026 until: Tue Dec 28 04: 08: 01 GMT 2055
+Certificate fingerprints:
+  SHA1: 76: A6: 39: 57: 87: 12: 1 C: 32: B9: 71: 33: 44: 46: DE: F0: 91: A6: 29: CE: F7
+SHA256: 23: CB: 2 E: F1: E1: 0 F: 9 B: 83: 1 E: 80: BF: 81: C8: A8: 0B: 10: 8 B: 29: 2 A: 5 E: 05: 0 D: 4 C: C2: 63: 42: D5: 0 F: 13: A6: F7: 74
+Signature algorithm name: SHA256withRSA
+Subject Public Key Algorithm: 2048 - bit RSA key
+Version: 1
+  ~$

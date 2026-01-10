@@ -1,6 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithCredential } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+
+
 
 // --- 1. CONFIGURATION ---
 const firebaseConfig = {
@@ -48,8 +50,36 @@ function getIndDate(isoDate) {
     return `${p[2]}-${p[1]}-${p[0]}`;
 }
 
+
 // --- 4. AUTH & INIT ---
-window.loginWithGoogle = function() { signInWithPopup(auth, provider).then(() => location.reload()).catch(e => alert(e.message)); }
+window.loginWithGoogle = function() {
+    // अगर ऐप मोबाइल (Cordova) पर चल रहा है
+    if (window.plugins && window.plugins.googleplus) {
+        window.plugins.googleplus.login(
+            {
+                'webClientId': '61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com',
+                'offline': true
+            },
+            function (obj) {
+                // Native लॉगिन सफल होने पर Firebase को Token भेजें
+                const credential = GoogleAuthProvider.credential(obj.idToken);
+                signInWithCredential(auth, credential)
+                    .then(() => {
+                        alert("लॉगिन सफल!");
+                        location.reload();
+                    })
+                    .catch(e => alert("Firebase Auth Error: " + e.message));
+            },
+            function (msg) {
+                alert("Google Plus Error: " + msg);
+            }
+        );
+    } else {
+        // अगर SPCK एडिटर के अंदर ब्राउज़र में टेस्ट कर रहे हैं
+        signInWithPopup(auth, provider).then(() => location.reload()).catch(e => alert(e.message));
+    }
+}
+
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
