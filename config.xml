@@ -48,7 +48,7 @@
     <plugin name="cordova-plugin-file" spec="^8.1.0" />
     <plugin name="cordova-plugin-file-opener2" spec="^4.0.0" />
     
-    <plugin name="cordova-plugin-google-plus" spec="https://github.com/EddyVerbruggen/cordova-plugin-google-plus/archive/master.tar.gz">
+    <plugin name="cordova-plugin-google-plus" spec="https://github.com/EddyVerbruggen/cordova-plugin-google-plus.git">
         <variable name="PLAY_SERVICES_VERSION" value="17.0.0" />
         <variable name="WEB_APPLICATION_CLIENT_ID" value="61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com" />
     </plugin>
