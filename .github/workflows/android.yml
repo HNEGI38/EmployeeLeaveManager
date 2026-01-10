@@ -14,17 +14,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout Code (Updated to v4)
+      # 1. Checkout Code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js (Updated to v4 & Node 18)
+      # 2. Setup Node.js (Node 18)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      # 3. Setup Java (Updated to v4 & Java 17 - Required for Gradle 8)
+      # 3. Setup Java (Java 17 - Required for new Android builds)
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
@@ -35,9 +35,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Cordova & Dependencies
+      # 5. Install Dependencies (FIXED: Force HTTPS instead of SSH)
       - name: Install Dependencies
         run: |
+          git config --global url."https://github.com/".insteadOf git@github.com:
+          git config --global url."https://".insteadOf git://
           npm install -g cordova
           npm install
 
@@ -49,7 +51,7 @@ jobs:
       - name: Build Android APK
         run: cordova build android --debug --packageType=apk
 
-      # 8. Upload APK (Updated to v4 - This fixes your error)
+      # 8. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
