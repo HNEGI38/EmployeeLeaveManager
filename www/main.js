@@ -820,7 +820,7 @@ window.saveProfile = function() {
     saveData(); document.getElementById('profileModal').style.display='none'; refreshAll();
 }
 
-// --- 12. PDF GENERATOR ---
+// --- 12. PDF GENERATOR (UPDATED FOR ANDROID PRINT/SAVE) ---
 window.downloadLedgerPDF = function(type) {
     let conf = leaveConfig[type];
     let p = userProfile;
@@ -839,12 +839,12 @@ window.downloadLedgerPDF = function(type) {
     let htmlContent = `
     <html>
     <head>
-        <title>${conf.name} - Report</title>
+        <title>${conf.name} Report</title>
         <style>
-            body { font-family: sans-serif; padding: 20px; font-size: 12px; }
+            body { font-family: sans-serif; padding: 20px; font-size: 14px; }
             h2, h3 { text-align: center; margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th, td { border: 1px solid #333; padding: 6px; text-align: left; }
+            th, td { border: 1px solid #333; padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
             .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         </style>
@@ -898,10 +898,20 @@ window.downloadLedgerPDF = function(type) {
     }
     htmlContent += `</tbody></table>
     </body></html>`;
-    let printWin = window.open('', '', 'height=600,width=800');
-    printWin.document.write(htmlContent);
-    printWin.document.close();
-    setTimeout(() => { printWin.print(); }, 500);
+
+    // 🟢 UPDATED PRINT LOGIC FOR ANDROID
+    if (window.cordova && cordova.plugins && cordova.plugins.printer) {
+        cordova.plugins.printer.print(htmlContent, {
+            name: `${conf.name}_Report.pdf`,
+            duplex: false
+        });
+    } else {
+        // Fallback for testing on browser
+        let printWin = window.open('', '', 'height=600,width=800');
+        printWin.document.write(htmlContent);
+        printWin.document.close();
+        setTimeout(() => { printWin.print(); }, 500);
+    }
 }
 
 // --- 13. PRATIKAR MANAGER (Standard) ---
