@@ -26,6 +26,19 @@
     <allow-intent href="market:*" />
     
     <platform name="android">
+        <icon id="ic_launcher" src="www/icon.png" />
+        <adaptive-icon>
+            <background color="#4e54c8"/> 
+            <foreground src="www/icon.png"/>
+        </adaptive-icon>
+
+        <preference name="SplashScreen" value="screen" />
+        <preference name="AutoHideSplashScreen" value="true" />
+        <preference name="SplashScreenDelay" value="3000" />
+        <preference name="FadeSplashScreen" value="true" />
+        <preference name="FadeSplashScreenDuration" value="500" />
+        <splash src="www/icon.png" />
+
         <preference name="AndroidXEnabled" value="true" />
         <preference name="GradlePluginGoogleServicesEnabled" value="true" />
         <preference name="GradlePluginKotlinEnabled" value="true" />
@@ -48,7 +61,6 @@
     <plugin name="cordova-plugin-file" spec="^8.1.0" />
     <plugin name="cordova-plugin-file-opener2" spec="^4.0.0" />
     <plugin name="cordova-plugin-inappbrowser" spec="^5.0.0" />
-    
     <plugin name="cordova-plugin-printer" spec="^0.8.0" />
 
 </widget>

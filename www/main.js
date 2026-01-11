@@ -1049,39 +1049,72 @@ window.deleteConsumedPratikar = function(leaveDate) {
 }
 
 // --- 14. ACTIONS ---
+// --- 14. ACTIONS (UPDATED FOR INSTANT UPDATE) ---
+
 window.submitLeaveEntry = function() {
     let s = document.getElementById('action-start').value;
     let e = document.getElementById('action-end').value;
-    if(!s || !e) return alert("तारीख चुनें");
-    let curr = new Date(s), end = new Date(e);
+    if (!s || !e) return alert("तारीख चुनें");
+    
+    let curr = new Date(s),
+        end = new Date(e);
     let addedCount = 0;
     let conf = leaveConfig[currentLeaveType];
-    while(curr <= end) {
+    
+    while (curr <= end) {
         let fDate = curr.toISOString().split('T')[0];
         let canAdd = true;
-        if(conf.excludeHolidays && isHolidayOrSunday(curr)) canAdd = false; 
-        if(canAdd && !leaveHistory.some(x => x.date === fDate)) {
+        if (conf.excludeHolidays && isHolidayOrSunday(curr)) canAdd = false;
+        if (canAdd && !leaveHistory.some(x => x.date === fDate)) {
             leaveHistory.push({ date: fDate, type: currentLeaveType });
             addedCount++;
         }
         curr.setDate(curr.getDate() + 1);
     }
-    if(addedCount > 0) { saveData(); renderModalTable(currentLeaveType); alert(`${addedCount} दिन का अवकाश दर्ज हुआ।`); } 
+    
+    if (addedCount > 0) {
+        // 1. UI को तुरंत अपडेट करें
+        renderModalTable(currentLeaveType);
+        refreshAll();
+        
+        // 2. लोकल और क्लाउड पर सेव करें
+        saveData();
+        
+        // 3. छोटा सा गैप देकर मैसेज दिखाएं ताकि स्क्रीन न अटके
+        setTimeout(function() {
+            alert(`${addedCount} दिन का अवकाश दर्ज हुआ।`);
+        }, 100);
+    }
     else alert("छुट्टियां थीं या पहले से दर्ज था।");
 }
+
 window.submitCreditEntry = function() {
     let val = parseInt(document.getElementById('action-val').value);
-    if(!val) return alert("संख्या लिखें");
-    if(!manualCredits[currentLeaveType]) manualCredits[currentLeaveType] = {};
+    if (!val) return alert("संख्या लिखें");
+    
+    if (!manualCredits[currentLeaveType]) manualCredits[currentLeaveType] = {};
+    
     let year;
-    if(leaveConfig[currentLeaveType].format === 'FIXED_QUOTA') {
+    if (leaveConfig[currentLeaveType].format === 'FIXED_QUOTA') {
         year = userProfile.appt ? new Date(userProfile.appt).getFullYear() : 2014;
     } else {
         year = document.getElementById('action-year').value;
     }
-    manualCredits[currentLeaveType][year] = val; 
-    saveData(); renderModalTable(currentLeaveType); alert("अपडेट हो गया!");
-    document.getElementById('action-val').value = "";
+    
+    manualCredits[currentLeaveType][year] = val;
+    
+    // 1. UI तुरंत अपडेट करें
+    renderModalTable(currentLeaveType);
+    refreshAll();
+    
+    // 2. सेव करें
+    saveData();
+    
+    // 3. मैसेज दिखाएं
+    setTimeout(function() {
+        alert("अपडेट हो गया!");
+        document.getElementById('action-val').value = "";
+    }, 100);
 }
 
 // --- 15. UTILS ---
