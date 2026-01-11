@@ -5,15 +5,17 @@ import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/fireb
 
 
 // --- 1. CONFIGURATION ---
+// --- 1. CONFIGURATION (इसे खोजें और नीचे वाले कोड से बदलें) ---
 const firebaseConfig = {
-  apiKey: "AIzaSyDrjV87NqtWAD610oPnia_sbgVZOYcEoH0",
+  apiKey: "AIzaSyD_EhgemVhY9wevp46r0u4WCt4qRsmID9s", // आपकी नई JSON फाइल से
   authDomain: "leavemanageruk.firebaseapp.com",
   projectId: "leavemanageruk",
   storageBucket: "leavemanageruk.firebasestorage.app",
   messagingSenderId: "61077377680",
-  appId: "1:61077377680:web:6369eef3114f17381f7e15",
+  appId: "1:61077377680:android:bef5f24e63942fcc1f7e15", // नया Android App ID
   measurementId: "G-V5NDJPNSCZ"
 };
+
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
