@@ -46,4 +46,8 @@
     <plugin name="cordova-plugin-file" spec="^8.1.0" />
     <plugin name="cordova-plugin-file-opener2" spec="^4.0.0" />
     
-    </widget>
+    <plugin name="cordova-plugin-google-signin" spec="^1.0.0" />
+    
+    <preference name="GoogleSignInClientId" value="61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com" />
+
+</widget>
