@@ -8,38 +8,52 @@ on:
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout Code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18'
 
+      # 3. Setup Java
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
 
+      # 4. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      # 5. Install Dependencies (With Force HTTPS Fix)
       - name: Install Dependencies
         run: |
+          # Force Git to use HTTPS instead of SSH (Fixes Permission Denied Error)
+          git config --global url."https://github.com/".insteadOf git@github.com:
+          git config --global url."https://github.com/".insteadOf ssh://git@github.com/
+
+          # Clean Install
           rm -rf node_modules package-lock.json platforms plugins
           npm install -g cordova
           npm install
 
+      # 6. Add Android Platform
       - name: Add Android Platform
-        run: cordova platform add android@13
+        run: cordova platform add android
 
+      # 7. Build APK
       - name: Build Android APK
-        run: cordova build android --debug
+        run: cordova build android --debug --packageType=apk
 
+      # 8. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
