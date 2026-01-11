@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.Hemraj.EmpLeaveManager" version="1.0.20" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<widget id="com.Hemraj.EmpLeaveManager" version="1.0.21" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     
     <name>Employee Leave Manager</name>
     <description>Leave management app for employees.</description>
@@ -58,6 +58,7 @@
         <resource-file src="google-services.json" target="app/google-services.json" />
     </platform>
     
+    <plugin name="cordova-plugin-splashscreen" spec="^6.0.0" />
     <plugin name="cordova-plugin-androidx-adapter" spec="^1.1.3" />
     <plugin name="cordova-plugin-file" spec="^8.1.0" />
     <plugin name="cordova-plugin-file-opener2" spec="^4.0.0" />
