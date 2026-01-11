@@ -821,6 +821,7 @@ window.saveProfile = function() {
 }
 
 // --- 12. PDF GENERATOR (UPDATED FOR ANDROID PRINT/SAVE) ---
+// --- 12. PDF GENERATOR (FIXED) ---
 window.downloadLedgerPDF = function(type) {
     let conf = leaveConfig[type];
     let p = userProfile;
@@ -836,7 +837,8 @@ window.downloadLedgerPDF = function(type) {
         serviceHTML += `</table>`;
     }
 
-    let htmlContent = `
+    // 🟢 FIX: Added <!DOCTYPE html> and removed starting newline
+    let htmlContent = `<!DOCTYPE html>
     <html>
     <head>
         <title>${conf.name} Report</title>
@@ -899,20 +901,20 @@ window.downloadLedgerPDF = function(type) {
     htmlContent += `</tbody></table>
     </body></html>`;
 
-    // 🟢 UPDATED PRINT LOGIC FOR ANDROID
+    // Print Logic
     if (window.cordova && cordova.plugins && cordova.plugins.printer) {
         cordova.plugins.printer.print(htmlContent, {
-            name: `${conf.name}_Report.pdf`,
+            name: `${conf.name}_Report`,
             duplex: false
         });
     } else {
-        // Fallback for testing on browser
         let printWin = window.open('', '', 'height=600,width=800');
         printWin.document.write(htmlContent);
         printWin.document.close();
         setTimeout(() => { printWin.print(); }, 500);
     }
 }
+
 
 // --- 13. PRATIKAR MANAGER (Standard) ---
 window.openPratikarModal = function() {
