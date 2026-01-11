@@ -33,27 +33,35 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Dependencies (Standard with HTTPS Force)
+      # 5. Install Dependencies (Clean)
       - name: Install Dependencies
         run: |
-          # Force Git to use HTTPS to avoid SSH Permission Errors
-          git config --global url."https://github.com/".insteadOf git@github.com:
-          git config --global url."https://github.com/".insteadOf ssh://git@github.com/
-
-          # Clean and Install
+          # Clean install without Google Plugin first
           rm -rf node_modules package-lock.json platforms plugins
           npm install -g cordova
           npm install
 
-      # 6. Add Android Platform
+      # 6. MANUAL PLUGIN INJECTION (The Fix)
+      - name: Install Google Plugin via ZIP
+        run: |
+          # Download ZIP from havesource (Active Repo)
+          wget https://github.com/havesource/cordova-plugin-google-plus/archive/refs/heads/master.zip -O plugin.zip
+          
+          # Unzip it
+          unzip plugin.zip
+          
+          # Install from the folder (Folder name is usually repo-name-branch)
+          cordova plugin add ./cordova-plugin-google-plus-master --variable PLAY_SERVICES_VERSION=17.0.0 --variable WEB_APPLICATION_CLIENT_ID=61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com
+
+      # 7. Add Android Platform
       - name: Add Android Platform
         run: cordova platform add android
 
-      # 7. Build APK
+      # 8. Build APK
       - name: Build Android APK
         run: cordova build android --debug --packageType=apk
 
-      # 8. Upload APK
+      # 9. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
