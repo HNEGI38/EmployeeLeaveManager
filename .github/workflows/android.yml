@@ -12,56 +12,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout Code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      # 3. Setup Java
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 4. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Dependencies (Clean)
       - name: Install Dependencies
         run: |
-          # Clean install without Google Plugin first
           rm -rf node_modules package-lock.json platforms plugins
           npm install -g cordova
           npm install
 
-      # 6. MANUAL PLUGIN INJECTION (The Fix)
-      - name: Install Google Plugin via ZIP
+      # 🟢 ZIP FILE INSTALLATION STEP
+      - name: Install Google Plugin from ZIP
         run: |
-          # Download ZIP from havesource (Active Repo)
-          wget https://github.com/havesource/cordova-plugin-google-plus/archive/refs/heads/master.zip -O plugin.zip
-          
-          # Unzip it
-          unzip plugin.zip
-          
-          # Install from the folder (Folder name is usually repo-name-branch)
+          # 1. Unzip the file
+          unzip google-plugin.zip
+
+          # 2. Install plugin from extracted folder
           cordova plugin add ./cordova-plugin-google-plus-master --variable PLAY_SERVICES_VERSION=17.0.0 --variable WEB_APPLICATION_CLIENT_ID=61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com
 
-      # 7. Add Android Platform
       - name: Add Android Platform
         run: cordova platform add android
 
-      # 8. Build APK
       - name: Build Android APK
         run: cordova build android --debug --packageType=apk
 
-      # 9. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

@@ -1,20 +1,14 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.Hemraj.EmpLeaveManager" version="1.0.16" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
-    
+<widget id="com.Hemraj.EmpLeaveManager" version="1.0.18" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>Employee Leave Manager</name>
     <description>Leave management app for employees.</description>
-    <author email="help@gyansangrah.com" href="https://gyansangrah.com">
-        Developer
-    </author>
-    
+    <author email="help@gyansangrah.com" href="https://gyansangrah.com">Developer</author>
     <content src="index.html" />
-    
     <access origin="*" />
     <allow-navigation href="*" />
     <allow-navigation href="https://*.gstatic.com/*" />
     <allow-navigation href="https://*.googleapis.com/*" />
     <allow-navigation href="https://*.firebaseio.com/*" />
-    
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     <allow-intent href="tel:*" />
@@ -22,28 +16,23 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
     <allow-intent href="market:*" />
-    
     <platform name="android">
         <preference name="AndroidXEnabled" value="true" />
         <preference name="GradlePluginGoogleServicesEnabled" value="true" />
         <preference name="GradlePluginKotlinEnabled" value="true" />
-        
         <config-file parent="/*" target="AndroidManifest.xml">
             <uses-permission android:name="android.permission.INTERNET" />
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
             <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
         </config-file>
-        
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true" android:requestLegacyExternalStorage="true" />
         </edit-config>
-
         <resource-file src="google-services.json" target="app/google-services.json" />
     </platform>
-    
     <plugin name="cordova-plugin-androidx-adapter" spec="^1.1.3" />
     <plugin name="cordova-plugin-file" spec="^8.1.0" />
     <plugin name="cordova-plugin-file-opener2" spec="^4.0.0" />
-    
-    </widget>
+</widget>
+

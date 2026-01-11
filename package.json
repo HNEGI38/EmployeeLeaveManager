@@ -1,7 +1,7 @@
 {
   "name": "com.Hemraj.EmpLeaveManager",
   "displayName": "Employee Leave Manager",
-  "version": "1.0.16",
+  "version": "1.0.18",
   "description": "Leave management app for employees.",
   "main": "index.js",
   "scripts": {
