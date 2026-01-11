@@ -33,15 +33,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Dependencies (With Force HTTPS Fix)
+      # 5. Install Dependencies (Clean Standard Install)
       - name: Install Dependencies
         run: |
-          # Force Git to use HTTPS instead of SSH (Fixes Permission Denied Error)
-          git config --global url."https://github.com/".insteadOf git@github.com:
-          git config --global url."https://github.com/".insteadOf ssh://git@github.com/
-
-          # Clean Install
+          # Clean old files to prevent conflicts
           rm -rf node_modules package-lock.json platforms plugins
+          
+          # Install Cordova and Dependencies from NPM Registry
           npm install -g cordova
           npm install
 
