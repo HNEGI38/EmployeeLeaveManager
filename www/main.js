@@ -52,37 +52,51 @@ function getIndDate(isoDate) {
 
 
 // --- 4. AUTH & INIT ---// --- 4. AUTH & INIT ---
-window.loginWithGoogle = function() {
-    console.log("Login Initiated...");
+// Global variable to check if device is ready
+var isDeviceReady = false;
 
-    // ✅ APK के लिए: (Google Plus Plugin का उपयोग)
+// Wait for Cordova to fully load
+document.addEventListener("deviceready", function() {
+    console.log("Device is Ready!");
+    isDeviceReady = true;
+}, false);
+
+window.loginWithGoogle = function() {
+    console.log("Login Button Clicked...");
+
+    // 1. Check if Cordova is ready
+    if (!isDeviceReady) {
+        alert("Please wait, app is loading...");
+        return;
+    }
+
+    // 2. Check if Plugin exists
     if (window.plugins && window.plugins.googleplus) {
+        // ✅ USE NATIVE PLUGIN (Sahi Tarika)
         window.plugins.googleplus.login(
             {
                 'webClientId': '61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com',
                 'offline': true
             },
             function (obj) {
-                // सफल लॉगिन (Success)
+                // Success: Connect with Firebase
+                console.log("Native Login Success, Token: " + obj.idToken);
                 const credential = GoogleAuthProvider.credential(obj.idToken);
                 signInWithCredential(auth, credential)
                     .then(() => {
-                        alert("Login Successful! (App)");
+                        alert("Login Successful! 🎉");
                         location.reload();
                     })
                     .catch(e => alert("Firebase Auth Error: " + e.message));
             },
             function (msg) {
-                // अगर फेल हुआ
-                alert("Google Plus Error: " + msg);
+                // Plugin Error
+                alert("Google Sign-In Error: " + msg);
             }
         );
-    } 
-    // ✅ Browser / SPCK के लिए:
-    else {
-        signInWithPopup(auth, provider)
-            .then(() => location.reload())
-            .catch(e => alert("Browser Error: " + e.message));
+    } else {
+        // ❌ Plugin Not Found
+        alert("Error: Google Plugin not detected! (Make sure cordova.js is linked)");
     }
 };
 
@@ -882,7 +896,8 @@ window.downloadLedgerPDF = function(type) {
             }
         }
     }
-    htmlContent += `</tbody></table></body></html>`;
+    htmlContent += `</tbody></table>
+    </body></html>`;
     let printWin = window.open('', '', 'height=600,width=800');
     printWin.document.write(htmlContent);
     printWin.document.close();
