@@ -33,13 +33,15 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install Dependencies (Clean Standard Install)
+      # 5. Install Dependencies (FORCE HTTPS - The Fix)
       - name: Install Dependencies
         run: |
-          # Clean old files to prevent conflicts
+          # Force Git to use HTTPS instead of SSH (Fixes Error 128)
+          git config --global url."https://github.com/".insteadOf git@github.com:
+          git config --global url."https://github.com/".insteadOf ssh://git@github.com/
+
+          # Clean Install
           rm -rf node_modules package-lock.json platforms plugins
-          
-          # Install Cordova and Dependencies from NPM Registry
           npm install -g cordova
           npm install
 
