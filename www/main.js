@@ -2,6 +2,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithCredential } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
+
+
 // --- 1. CONFIGURATION ---
 const firebaseConfig = {
   apiKey: "AIzaSyDrjV87NqtWAD610oPnia_sbgVZOYcEoH0",
@@ -29,6 +31,7 @@ let selectedDashboardYear = new Date().getFullYear();
 let wrongPinAttempts = 0; 
 
 // --- 3. LEAVE RULES ---
+// Note: ML, CCL, Maternity, Paternity quota set to 0. User must add it once.
 const leaveConfig = {
     "CL": { name: "आकस्मिक (CL)", type: "SHORT", quota: 14, format: "YEARLY", excludeHolidays: true },
     "Pratikar": { name: "प्रतिकर अवकाश", type: "SHORT", quota: 0, format: "MANUAL", excludeHolidays: true },
@@ -47,46 +50,48 @@ function getIndDate(isoDate) {
     return `${p[2]}-${p[1]}-${p[0]}`;
 }
 
-// --- 4. AUTH & INIT (UPDATED FOR NEW PLUGIN) ---
+
+// --- 4. AUTH & INIT ---// --- 4. AUTH & INIT ---
 window.loginWithGoogle = function() {
     console.log("Login Initiated...");
 
-    // ✅ CASE 1: Android App (APK) - Using New Plugin
-    if (window.cordova && window.plugins && window.plugins.googleSignIn) {
-        window.plugins.googleSignIn.signIn(
-            function (user) {
-                // Success: Get ID Token
-                const credential = GoogleAuthProvider.credential(user.idToken);
+    // ✅ APK के लिए: (Google Plus Plugin का उपयोग)
+    if (window.plugins && window.plugins.googleplus) {
+        window.plugins.googleplus.login(
+            {
+                'webClientId': '61077377680-a1qmh8mfeiqglratng420rmbaph57hvb.apps.googleusercontent.com',
+                'offline': true
+            },
+            function (obj) {
+                // सफल लॉगिन (Success)
+                const credential = GoogleAuthProvider.credential(obj.idToken);
                 signInWithCredential(auth, credential)
                     .then(() => {
-                        alert("लॉगिन सफल! (App Mode)");
+                        alert("Login Successful! (App)");
                         location.reload();
                     })
                     .catch(e => alert("Firebase Auth Error: " + e.message));
             },
-            function (err) {
-                // Error
-                alert("Google Sign-In Error: " + JSON.stringify(err));
+            function (msg) {
+                // अगर फेल हुआ
+                alert("Google Plus Error: " + msg);
             }
         );
     } 
-    // ✅ CASE 2: Browser / SPCK Testing (Popup Mode)
+    // ✅ Browser / SPCK के लिए:
     else {
         signInWithPopup(auth, provider)
             .then(() => location.reload())
-            .catch(e => alert("Browser Login Error: " + e.message));
+            .catch(e => alert("Browser Error: " + e.message));
     }
-}
+};
+
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
-        const loginBtn = document.getElementById("login-btn");
-        const userInfo = document.getElementById("user-info");
-        
-        if(loginBtn) loginBtn.style.display = "none";
-        if(userInfo) userInfo.style.display = "block";
-        
+        document.getElementById("login-btn").style.display = "none";
+        document.getElementById("user-info").style.display = "block";
         try {
             const docSnap = await getDoc(doc(db, "users", user.uid));
             if (docSnap.exists()) {
